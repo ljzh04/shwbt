@@ -4,7 +4,7 @@
 
 ## Project state
 
-The repository is a **research-grade specification and scaffold**, not yet a complete battle-playing implementation.
+The repository is a **research-grade deterministic scaffold with an end-to-end local collection path**, not yet a complete battle-playing implementation.
 
 The intended stack is TypeScript/Node for simulator + online policy, PostgreSQL for metadata, Parquet for large training datasets, Python optionally for offline training/analysis, and Docker Compose for local infrastructure.
 
@@ -12,7 +12,7 @@ The intended stack is TypeScript/Node for simulator + online policy, PostgreSQL 
 
 - project specification and architecture documents
 - objective configurations
-- system configuration with explicit simulator pin placeholder
+- system configuration with explicit simulator pin
 - JSON schemas for decision points and teams
 - deterministic canonical battle-state hashing utility
 - conservative protocol reducer for core public battle events
@@ -53,26 +53,18 @@ The intended stack is TypeScript/Node for simulator + online policy, PostgreSQL 
 - roadmap, evaluation methodology, team lab design, opponent model design, and self-improvement design
 - PostgreSQL/Docker scaffolding
 
-## Not implemented yet
+## Known gaps
 
-- actual Showdown dependency/pinned commit
-- protocol reducer
-- canonical battle-state implementation
-- legal action extraction implementation
-- exact simulator snapshot/branch mechanism
-- baseline stall evaluator implementation
-- one-ply/beam/MCTS implementation
-- opponent belief implementation
-- automatic telemetry collector implementation
-- storage repository implementation
-- replay ingestion implementation
-- team evolutionary implementation
-- model training implementation
-- promotion runner implementation
+- full protocol coverage beyond the conservative reducer subset
+- exact Showdown snapshot API; branching uses deterministic command replay
+- production PostgreSQL wiring and migrations beyond the injectable repository boundary
+- pending decision finalization is exposed, but self-play policy telemetry does not yet call it automatically
+- learning/team-lab utilities are deterministic baselines, not trained models or evolutionary runs
+- benchmark runner is a metric harness, not yet a full simulator-backed frozen campaign
 
 ## Current target
 
-Build the first vertical slice:
+Harden the first vertical slice:
 
 ```text
 Showdown BattleStream
@@ -83,7 +75,7 @@ Showdown BattleStream
   → persisted raw/decision records
 ```
 
-Do this before introducing learned policies.
+The local simulator, raw protocol logging, decision extraction, validation, replay ingestion, and benchmark scaffolding now exist; next work should close the integration gaps above before introducing learned policies.
 
 ## Simulator assumptions to verify in code
 
