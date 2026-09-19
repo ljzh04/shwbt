@@ -24,10 +24,12 @@ export class ShowdownBattle implements SimulatorBattle {
   private outputCount = 0;
 
   private protocolCallbacks: Promise<void> = Promise.resolve();
+  private resultCallback: Promise<void> = Promise.resolve();
 
   constructor(
     private readonly perspective: PlayerId | 'all' = 'p1',
     private readonly onProtocol?: (type: string, payload: string) => void | Promise<void>,
+    private readonly onResult?: (result: BattleResult) => void | Promise<void>,
   ) {
     void this.consumeOutput();
   }
@@ -68,7 +70,7 @@ export class ShowdownBattle implements SimulatorBattle {
   }
 
   async clone(): Promise<SimulatorBattle> {
-    const clone = new ShowdownBattle(this.perspective, this.onProtocol);
+    const clone = new ShowdownBattle(this.perspective, this.onProtocol, this.onResult);
     for (const command of this.commandLog) clone.write(command);
     await clone.waitForOutputCount(this.outputCount);
     return clone;
@@ -84,6 +86,7 @@ export class ShowdownBattle implements SimulatorBattle {
 
   async flush(): Promise<void> {
     await this.protocolCallbacks;
+    await this.resultCallback;
   }
 
   private async consumeOutput(): Promise<void> {
@@ -137,8 +140,10 @@ export class ShowdownBattle implements SimulatorBattle {
         winner: result.winner === 'p1' || result.winner === 'p2' ? result.winner : null,
         reason: result.tie ? 'tie' : null,
       };
+      this.resultCallback = this.resultCallback.then(() => this.onResult?.(this.battleResult!));
     } catch {
-      this.battleResult = { winner: null, reason: null };
+      this.battleResult = { winner: null, reason: 'abnormal_end' };
+      this.resultCallback = this.resultCallback.then(() => this.onResult?.(this.battleResult!));
     }
   }
 

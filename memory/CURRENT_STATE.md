@@ -42,6 +42,7 @@ The intended stack is TypeScript/Node for simulator + online policy, PostgreSQL 
 - simulator-owned damage oracle wraps pinned Showdown BattleActions.getDamage
 - decision sink reduces protocol sideupdates, validates pending decisions, and persists decision records
 - self-play collector writes configurable raw protocol and validated decision NDJSON outputs
+- self-play collector persists simulator outcome events through a result callback
 - package boundaries/readmes for simulator, engine, agent, storage, teamlab, training, and CLI
 - roadmap, evaluation methodology, team lab design, opponent model design, and self-improvement design
 - PostgreSQL/Docker scaffolding

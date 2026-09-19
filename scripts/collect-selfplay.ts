@@ -16,6 +16,7 @@ async function main(): Promise<void> {
   const writer = new RawEventWriter(rawPath);
   const decisionSink = new DecisionSink(new RawEventWriter(decisionPath));
   let sequence = 0;
+  const battleId = runId;
   const battle = new ShowdownBattle('all', async (type, payload) => {
     const event = {
       schema_version: '1.0.0', event_id: randomUUID(), run_id: runId, battle_id: runId, sequence,
@@ -26,6 +27,11 @@ async function main(): Promise<void> {
     sequence += 1;
     await writer.append(event);
     await decisionSink.accept(event);
+  }, async (result) => {
+    await writer.append({
+      schema_version: '1.0.0', event_id: randomUUID(), run_id: runId, battle_id: battleId, sequence: sequence++,
+      timestamp: new Date().toISOString(), source: 'selfplay', simulator_commit: '2ddfa0476f8207e12e204b1c69f7c7683b17633c', format_id: 'gen9customgame', agent_version: 'collector-dev', payload_type: 'outcome', payload: { winner: result.winner, reason: result.reason },
+    });
   });
 
   await battle.start({ formatId: 'gen9customgame', p1Name: 'selfplay-p1', p2Name: 'selfplay-p2', p1Team: team, p2Team: team, seed: 1337 });
