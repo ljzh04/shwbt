@@ -67,3 +67,41 @@ decision: "reject" # do not promote preserving-stall-v1: zero measured delta
 ```
 
 Follow-up intent: a discriminating campaign needs scenarios where a low-HP switch decision actually changes the outcome (e.g., forced-switch pressure / knockout differential), or policy-side opponents with varied switch seeds so deterministic-vs-deterministic lockstep does not mask behavior changes.
+
+### EXP-20260919-002
+
+```yaml
+id: EXP-20260919-002
+status: complete
+question: "With agent-visible HP restored, does preserving-stall-v1 measurably change win rate / catastrophic losses vs baseline-v1 on frozen-ou-v2?"
+simulator_commit: "2ddfa0476f8207e12e204b1c69f7c7683b17633c"
+format_id: "gen9customgame"
+objective_config: "default stall objective vector"
+agent_version: "preserving-stall-v1"
+dataset_version: null
+seed: "1337, 4242, 909, 2024"
+budget:
+  battles: 8
+  search_nodes: 0
+results:
+  win_rate: 0.25 (candidate) vs 0.5 (control)
+  avg_turns: null
+  pp_depletion: null
+  forced_switches: null
+  catastrophic_loss_rate: 0.0 (candidate) vs 0.25 (control)
+calibration:
+  brier: null
+notes: >
+  EXP-20260919-001's zero delta was a measurement artifact: the protocol reducer discarded the
+  `|request|` `condition` fields (the only HP source in this Showdown build), so every active
+  Pokemon tracked hp=0/maxHp=0, `hpFraction` guarded to 1, and no candidate override could fire.
+  Fix: `applyRequestRoster`/`applyRequestRosterFromJson` on the reducer + regression test
+  (tests/simulator.test.ts). After the fix, the trace shows structuralIntegrity switches and
+  winProgress finishes firing; frozen-ou-v2 now discriminates: the candidate's preservation
+  switches remove the BO-vs-stall catastrophic sweep (0.25 -> 0.0) but cost a BO-side win and the
+  stall mirror win (winRate 0.5 -> 0.25). Gate prints KEEP: winRate delta is negative and below
+  the 0.25 promotion threshold. Monotonic stall-team preservation is therefore not obviously
+  better on the objective; investigate rule interaction (healthy-bench requirement, finish rule,
+  hazard tempo) before a v3.
+decision: "reject" # measurable but win-rate-negative; keep observing, refine rules
+```

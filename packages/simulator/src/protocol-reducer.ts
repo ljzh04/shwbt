@@ -121,6 +121,57 @@ export class BattleProtocolReducer implements ProtocolReducer {
       case '-sideend':
         this.updateHazard(parts[2], parts[3], -1);
         break;
+      case 'request':
+        this.applyRequestRosterFromJson(parts[2]);
+        break;
+    }
+  }
+
+  applyRequestRosterFromJson(json: string | undefined): void {
+    if (!json || json === 'null') return;
+    try {
+      const request = JSON.parse(json) as {
+        side?: { id?: string; name?: string; pokemon?: readonly { ident?: string; condition?: string; active?: boolean }[] };
+      };
+      const player = request?.side?.id ?? request?.side?.name;
+      if (player !== 'p1' && player !== 'p2') return;
+      const roster = request?.side?.pokemon;
+      if (!roster) return;
+      this.applyRequestRoster(player, roster);
+    } catch {
+      // malformed request never comes from the pinned simulator
+    }
+  }
+
+  applyRequestRoster(player: PlayerId, roster: readonly { ident?: string; condition?: string; active?: boolean }[]): void {
+    if (!roster.length) return;
+    let activeSlot: string | null = null;
+    for (let index = 0; index < roster.length; index += 1) {
+      const entry = roster[index];
+      const ident = entry?.ident;
+      if (!ident) continue;
+      const letter = String.fromCharCode(97 + index);
+      const slot = `${player}${letter}`;
+      const fainted = entry.condition === '0 fnt';
+      const hp = fainted ? { hp: 0, maxHp: 0 } : parseHp(entry.condition);
+      const existing = this.findPokemon(player, slot);
+      const pokemon = {
+        ...(existing ?? pokemonFromMessage(slot, ident.replace(/^p[12]:\s*/, ''))),
+        ...hp,
+        fainted: existing ? (existing.fainted || fainted) : fainted,
+      };
+      this.replacePokemon(player, pokemon);
+      if (entry.active) activeSlot = slot;
+    }
+    if (activeSlot) {
+      this.state = {
+        ...this.state,
+        sides: { ...this.state.sides, [player]: { ...this.state.sides[player], activeSlot } },
+      };
+    }
+    const movedPokemon = activeSlot ? this.findPokemon(player, activeSlot) : undefined;
+    if (activeSlot && movedPokemon) {
+      this.state = { ...this.state, active: { ...this.state.active, [player]: movedPokemon } };
     }
   }
 

@@ -79,4 +79,34 @@ const forceActions = legalActionsFromRequest(`${separator}request${separator}${f
 assert.deepEqual(forceActions, [{ kind: 'switch', id: 'p2: Dodrio', target: 2 }]);
 assert.deepEqual(legalActionsFromRequest(`${separator}request${separator}${JSON.stringify({ wait: true })}`), []);
 
+const requestRosterReducer = new BattleProtocolReducer();
+requestRosterReducer.consume(`${separator}request${separator}${JSON.stringify({
+  side: { id: 'p2', pokemon: [
+    { ident: 'p2: Corviknight', active: true, condition: '207/313' },
+    { ident: 'p2: Heatran', active: false, condition: '0 fnt' },
+    { ident: 'p2: Toxapex', active: false, condition: '304/304' },
+  ] },
+})}`);
+const rosterP2 = requestRosterReducer.snapshot().sides.p2;
+assert.equal(rosterP2.activeSlot, 'p2a');
+assert.deepEqual(requestRosterReducer.snapshot().active.p2, rosterP2.team[0]);
+assert.equal(rosterP2.team[0]?.slot, 'p2a');
+assert.equal(rosterP2.team[0]?.species, 'Corviknight');
+assert.equal(rosterP2.team[0]?.hp, 207);
+assert.equal(rosterP2.team[0]?.maxHp, 313);
+assert.equal(rosterP2.team[1]?.hp, 0);
+assert.equal(rosterP2.team[1]?.maxHp, 0);
+assert.equal(rosterP2.team[1]?.fainted, true);
+assert.equal(rosterP2.team[2]?.maxHp, 304);
+requestRosterReducer.consume(`${separator}request${separator}${JSON.stringify({
+  side: { id: 'p2', pokemon: [
+    { ident: 'p2: Corviknight', active: true, condition: '121/313' },
+    { ident: 'p2: Heatran', active: false, condition: '0 fnt' },
+    { ident: 'p2: Toxapex', active: false, condition: '304/304' },
+  ] },
+})}`);
+assert.equal(requestRosterReducer.snapshot().active.p2?.hp, 121);
+assert.equal(requestRosterReducer.snapshot().active.p2?.maxHp, 313);
+assert.equal(requestRosterReducer.snapshot().active.p2?.species, 'Corviknight');
+
 console.log('simulator tests ok');

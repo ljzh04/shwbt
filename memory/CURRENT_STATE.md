@@ -74,6 +74,8 @@ The intended stack is TypeScript/Node for simulator + online policy, PostgreSQL 
 - first real non-baseline candidate policy (`packages/agent/src/preserving-policy.ts`, registered as `preserving-stall-v1`): deterministic low-HP/critical preservation switches to a healthy bench and a finish-rule override, side inferred from switch idents, baseline fallback; unit-tested and type-checked
 - `frozen-ou-v2.json` campaign added with 120-turn stall-vs-balance scenarios (both directions) and 80-turn Meowscarada-BO-vs-stall guard scenarios to discriminate beyond the 24-turn cap
 - measured campaign gate run: `preserving-stall-v1` vs `baseline-v1` produced byte-identical scenario outcomes on both frozen campaigns (EXP-20260919-001, KEEP/equal, zero measured delta)
+- reducer applies `|request|` `condition` roster fields to canonical HP (`applyRequestRoster`/`applyRequestRosterFromJson`), the only HP source in current Showdown builds; regression-tested in `tests/simulator.test.ts`
+- first real measured policy delta: after the HP fix, `preserving-stall-v1` removes the BO-vs-stall catastrophic sweep (0.25 -> 0.0) but drops win rate (0.5 -> 0.25) on frozen-ou-v2 (EXP-20260919-002, KEEP/win-rate-negative); gates now discriminate policy behavior
 - package boundaries/readmes for simulator, engine, agent, storage, teamlab, training, and CLI
 - roadmap, evaluation methodology, team lab design, opponent model design, and self-improvement design
 - PostgreSQL/Docker scaffolding
@@ -85,7 +87,7 @@ The intended stack is TypeScript/Node for simulator + online policy, PostgreSQL 
 - production PostgreSQL wiring and migrations beyond the injectable repository boundary
 - pending decision finalization is exposed, but self-play policy telemetry does not yet call it automatically
 - learning/team-lab utilities are deterministic baselines, not trained models or evolutionary runs
-- promotion/scheduler pipeline is wired for `baseline-v1`; the first real candidate (`preserving-stall-v1`) measured zero delta on the frozen OU campaigns (EXP-20260919-001, KEEP), so the gate has not yet produced a PROMOTE decision; discriminating scenarios need forced-switch/knockout pressure or varied opponent switch seeds
+- promotion/scheduler pipeline is wired for `baseline-v1`; the first real candidate (`preserving-stall-v1`) measured zero delta before the HP fix (EXP-20260919-001) and a win-rate-negative delta after it (EXP-20260919-002, KEEP); no PROMOTE yet; the fix confirmed decision-level discrimination now works, next is rule tuning or scenarios targeting the finish rule / healthy-bench tradeoff
 - live extension bridge is syntax-checked only, not verified against the live Showdown client; username scraper reads `#userbar .username`
 
 ## Current target
