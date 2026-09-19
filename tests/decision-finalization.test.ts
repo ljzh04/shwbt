@@ -15,16 +15,23 @@ async function main(): Promise<void> {
   };
   const pending = await sink.accept(event);
   assert.ok(pending);
+  const drift: RawEvent = {
+    ...event, event_id: 'event-1', sequence: 1,
+    payload: { type: 'sideupdate', message: `p1\n|-sidestart|p2: Wall|Stealth Rock\n|request|${request}` },
+  };
+  assert.ok(await sink.accept(drift));
   const finalized = await sink.finalize(pending.decision_id, { kind: 'move', id: 'recover' }, { next_state_hash: 'next' }, {
     winProgress: 0, opponentPPDepletion: 0, forcedSwitchValue: 0, statusPressure: 0, hazardPressure: 0,
     informationGain: 0, structuralIntegrity: 0, decisionBurden: 0, catastrophicRisk: 0, irreversibleResourceLoss: 0,
   });
   assert.equal(finalized, true);
   assert.equal(await sink.finalize(pending.decision_id, { kind: 'move', id: 'recover' }, {}, {} as never), false);
-  const records = (await readFile(join(root, 'decisions.ndjson'), 'utf8')).trim().split('\n').map((line) => JSON.parse(line) as { payload_type: string; payload: { chosen_action?: unknown } });
-  assert.equal(records.length, 3);
+  const records = (await readFile(join(root, 'decisions.ndjson'), 'utf8')).trim().split('\n').map((line) => JSON.parse(line) as { payload_type: string; payload: { chosen_action?: unknown; objective_delta?: { hazardPressure: number } } });
+  assert.equal(records.length, 5);
   assert.equal(records[1]?.payload_type, 'analysis');
-  assert.ok(records[2]?.payload.chosen_action);
+  const fin = records[4]?.payload;
+  assert.ok(fin?.chosen_action);
+  assert.ok((fin?.objective_delta?.hazardPressure ?? 0) > 0);
   console.log('decision finalization tests ok');
 }
 

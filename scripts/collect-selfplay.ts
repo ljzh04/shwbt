@@ -1,3 +1,4 @@
+import { readFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
 import { ShowdownBattle } from '../packages/simulator/src/battle-stream.js';
 import { DecisionSink } from '../packages/storage/src/decision-sink.js';
@@ -8,8 +9,13 @@ function option(name: string, fallback: string): string {
   return index >= 0 ? process.argv[index + 1] ?? fallback : fallback;
 }
 
+function loadTeam(path: string): Promise<string> {
+  return readFile(path, 'utf8');
+}
+
 async function main(): Promise<void> {
-  const team = JSON.stringify([{ species: 'Pikachu', ability: 'Static', item: 'Light Ball', moves: ['Thunderbolt', 'Quick Attack'] }]);
+  const p1Team = await loadTeam(option('--p1-team', 'data/teams/ou-stall-whitequeen.json'));
+  const p2Team = await loadTeam(option('--p2-team', 'data/teams/ou-balance-pivot.json'));
   const runId = randomUUID();
   const rawPath = option('--raw', 'data/raw/selfplay.ndjson');
   const decisionPath = option('--decisions', 'data/derived/selfplay-decisions.ndjson');
@@ -36,7 +42,7 @@ async function main(): Promise<void> {
     });
   });
 
-  await battle.start({ formatId: 'gen9customgame', p1Name: 'selfplay-p1', p2Name: 'selfplay-p2', p1Team: team, p2Team: team, seed: 1337 });
+  await battle.start({ formatId: 'gen9customgame', p1Name: 'selfplay-p1', p2Name: 'selfplay-p2', p1Team, p2Team, seed: 1337 });
   for (let turn = 0; turn < 100 && !battle.isFinished(); turn += 1) {
     const [p1, p2] = await Promise.all([battle.choices('p1'), battle.choices('p2')]);
     if (p1.length === 0 || p2.length === 0) break;

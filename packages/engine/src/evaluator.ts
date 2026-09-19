@@ -3,6 +3,7 @@ import type {
   CandidateScore,
   EvaluationConfig,
   EvaluationVector,
+  PlayerId,
 } from './types.js';
 
 function clamp(value: number): number {
@@ -31,8 +32,8 @@ function statusCount(state: BattleState, player: 'p1' | 'p2'): number {
   return state.sides[player].team.filter((pokemon) => pokemon.status !== null).length;
 }
 
-function hazardPressure(state: BattleState): number {
-  return clamp(Object.values(state.sides.p2.hazards).reduce((total, count) => total + count, 0) / 6);
+function hazardPressure(state: BattleState, foe: PlayerId): number {
+  return clamp(Object.values(state.sides[foe].hazards).reduce((total, count) => total + count, 0) / 6);
 }
 
 function dot(features: EvaluationVector, config: EvaluationConfig): number {
@@ -60,13 +61,14 @@ export function riskAdjustedValue(
   );
 }
 
-export function evaluateState(state: BattleState): EvaluationVector {
-  const ownTeam = state.sides.p1.team;
-  const opponentTeam = state.sides.p2.team;
+export function evaluateState(state: BattleState, perspective: PlayerId = 'p1'): EvaluationVector {
+  const foe: PlayerId = perspective === 'p1' ? 'p2' : 'p1';
+  const ownTeam = state.sides[perspective].team;
+  const opponentTeam = state.sides[foe].team;
   const ownFainted = ownTeam.filter((pokemon) => pokemon.fainted).length;
   const opponentFainted = opponentTeam.filter((pokemon) => pokemon.fainted).length;
   const ownViable = ownTeam.filter((pokemon) => !pokemon.fainted).length;
-  const opponentStatus = statusCount(state, 'p2');
+  const opponentStatus = statusCount(state, foe);
   const knownPp = opponentTeam.flatMap((pokemon) => Object.values(pokemon.movePp));
   const ppDepletion = knownPp.length === 0 ? 0 : clamp(knownPp.filter((pp) => pp === 0).length / knownPp.length);
   return {
@@ -74,11 +76,11 @@ export function evaluateState(state: BattleState): EvaluationVector {
     opponentPPDepletion: ppDepletion,
     forcedSwitchValue: 0,
     statusPressure: clamp(opponentStatus / Math.max(1, opponentTeam.length)),
-    hazardPressure: hazardPressure(state),
-    informationGain: revealedInformation(state, 'p2'),
+    hazardPressure: hazardPressure(state, foe),
+    informationGain: revealedInformation(state, foe),
     structuralIntegrity: clamp(ownViable / Math.max(1, ownTeam.length)),
     decisionBurden: clamp(state.choices.length / 10),
-    catastrophicRisk: ownViable === 0 || state.active.p1?.fainted === true ? 1 : 0,
+    catastrophicRisk: ownViable === 0 || state.active[perspective]?.fainted === true ? 1 : 0,
     irreversibleResourceLoss: 0,
   };
 }

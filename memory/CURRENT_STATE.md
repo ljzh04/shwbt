@@ -60,6 +60,8 @@ The intended stack is TypeScript/Node for simulator + online policy, PostgreSQL 
 - local analysis server serves latest/turn-pinned snapshots over HTTP from decision NDJSON (`scripts/serve-analysis.ts`)
 - zero-dependency static panel (`apps/showdown-panel/panel.html`) served at `/`, polls snapshots with KNOWN/INFERRED labels
 - `/timeline` endpoint plus panel timeline view shows per-turn top candidate, newly revealed opponent moves, and top belief
+- engine evaluator is perspective-aware (`evaluateState(state, player)`); DecisionSink finalize writes measured objective drift from reducer state, not caller zeros
+- self-play collector loads real Gen9 OU teams from `data/teams/` (`--p1-team`/`--p2-team`); stall, balance-pivot, and Meowscarada BO sample teams included
 - injectable PostgreSQL metadata repository covers battles, decisions, and dataset manifests
 - package boundaries/readmes for simulator, engine, agent, storage, teamlab, training, and CLI
 - roadmap, evaluation methodology, team lab design, opponent model design, and self-improvement design

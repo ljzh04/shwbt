@@ -1,4 +1,5 @@
 import type { Action, BattleState, EvaluationVector, PlayerId } from '../../engine/src/types.js';
+import { evaluateState } from '../../engine/src/evaluator.js';
 import { buildAnalysisSnapshot } from '../../agent/src/analysis-snapshot.js';
 import { DeterministicBaseline } from '../../agent/src/baseline.js';
 import type { ActionDecision, OpponentModel, SearchPolicy } from '../../agent/src/interfaces.js';
@@ -98,6 +99,9 @@ export class DecisionSink {
     const pending = this.pending.get(decisionId);
     if (!pending || !pending.legal_actions.some((action) =>
       action.kind === chosenAction.kind && action.id === chosenAction.id && action.target === chosenAction.target)) return false;
+    // ponytail: measured drift replaces caller-supplied zeros; falls back when no newer state exists.
+    const current = this.reducers.get(pending.battle_id)?.snapshot();
+    const measured = current ? deltaVector(evaluateState(pending.state, pending.actor), evaluateState(current, pending.actor)) : null;
     await this.writer.append({
       schema_version: pending.schema_version,
       event_id: `${pending.decision_id}:final`,
@@ -110,7 +114,7 @@ export class DecisionSink {
       format_id: pending.format_id,
       agent_version: pending.agent_version,
       payload_type: 'decision',
-      payload: { ...pending, chosen_action: chosenAction, transition, objective_delta: objectiveDelta },
+      payload: { ...pending, chosen_action: chosenAction, transition, objective_delta: measured ?? objectiveDelta },
     });
     this.pending.delete(decisionId);
     return true;
@@ -119,4 +123,19 @@ export class DecisionSink {
   snapshot(battleId: string): BattleState | null {
     return this.reducers.get(battleId)?.snapshot() ?? null;
   }
+}
+
+function deltaVector(before: EvaluationVector, after: EvaluationVector): EvaluationVector {
+  return {
+    winProgress: after.winProgress - before.winProgress,
+    opponentPPDepletion: after.opponentPPDepletion - before.opponentPPDepletion,
+    forcedSwitchValue: after.forcedSwitchValue - before.forcedSwitchValue,
+    statusPressure: after.statusPressure - before.statusPressure,
+    hazardPressure: after.hazardPressure - before.hazardPressure,
+    informationGain: after.informationGain - before.informationGain,
+    structuralIntegrity: after.structuralIntegrity - before.structuralIntegrity,
+    decisionBurden: after.decisionBurden - before.decisionBurden,
+    catastrophicRisk: after.catastrophicRisk - before.catastrophicRisk,
+    irreversibleResourceLoss: after.irreversibleResourceLoss - before.irreversibleResourceLoss,
+  };
 }
