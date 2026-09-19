@@ -76,6 +76,7 @@ The intended stack is TypeScript/Node for simulator + online policy, PostgreSQL 
 - measured campaign gate run: `preserving-stall-v1` vs `baseline-v1` produced byte-identical scenario outcomes on both frozen campaigns (EXP-20260919-001, KEEP/equal, zero measured delta)
 - reducer applies `|request|` `condition` roster fields to canonical HP (`applyRequestRoster`/`applyRequestRosterFromJson`), the only HP source in current Showdown builds; regression-tested in `tests/simulator.test.ts`
 - first real measured policy delta: after the HP fix, `preserving-stall-v1` removes the BO-vs-stall catastrophic sweep (0.25 -> 0.0) but drops win rate (0.5 -> 0.25) on frozen-ou-v2 (EXP-20260919-002, KEEP/win-rate-negative); gates now discriminate policy behavior
+- rule-iteration slice: `preserving-stall-v2` (tempo-faint-lead gate) and `preserving-stall-v3` (finish at low own HP above critical) both measured byte-identical to v1 on frozen-ou-v2 (EXP-20260919-003); the win->tie cost traces to one preservation switch at T12 on the balance side (s2), not tempo/finish logic; registry keeps v1/v2/v3 as measured arms
 - package boundaries/readmes for simulator, engine, agent, storage, teamlab, training, and CLI
 - roadmap, evaluation methodology, team lab design, opponent model design, and self-improvement design
 - PostgreSQL/Docker scaffolding

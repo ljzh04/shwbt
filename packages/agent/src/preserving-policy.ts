@@ -20,6 +20,8 @@ export interface PreservationRules {
   readonly criticalHpThreshold: number;
   readonly healthySwitchThreshold: number;
   readonly killThreshold: number;
+  readonly tempoFaintLead: number;
+  readonly finishOwnHpThreshold: number;
 }
 
 export const defaultPreservationRules: PreservationRules = {
@@ -27,7 +29,12 @@ export const defaultPreservationRules: PreservationRules = {
   criticalHpThreshold: 0.2,
   healthySwitchThreshold: 0.85,
   killThreshold: 0.15,
+  tempoFaintLead: 0,
+  finishOwnHpThreshold: 0.35,
 };
+
+export const v2PreservationRules: PreservationRules = { ...defaultPreservationRules, tempoFaintLead: 2 };
+export const v3PreservationRules: PreservationRules = { ...defaultPreservationRules, finishOwnHpThreshold: 0.2 };
 
 const emptyVector: EvaluationVector = {
   winProgress: 0, opponentPPDepletion: 0, forcedSwitchValue: 0, statusPressure: 0, hazardPressure: 0,
@@ -65,6 +72,13 @@ function switchTargetHp(state: BattleState, side: PlayerId, action: Action): num
   return pokemon ? hpFraction(pokemon) : 0;
 }
 
+function isAheadOnFaints(state: BattleState, side: PlayerId, faintLead: number): boolean {
+  if (faintLead <= 0) return false;
+  const ownFaints = state.sides[side].team.filter((entry) => entry.fainted).length;
+  const foeFaints = state.sides[foeOf(side)].team.filter((entry) => entry.fainted).length;
+  return ownFaints <= foeFaints - faintLead;
+}
+
 export function chooseCandidateFrom(input: SearchInput, rules: PreservationRules): { action: Action; reason: ReasonContribution } | null {
   const side = ownSide(input.legalActions);
   if (!side) return null;
@@ -86,13 +100,13 @@ export function chooseCandidateFrom(input: SearchInput, rules: PreservationRules
     && !protectiveMoves.has(normalize(action.id)),
   );
 
-  if (meHp <= rules.criticalHpThreshold && switches.length > 0) {
+  if (meHp <= rules.criticalHpThreshold && switches.length > 0 && !isAheadOnFaints(state, side, rules.tempoFaintLead)) {
     return { action: switches[0]!.action, reason: { feature: 'structuralIntegrity', contribution: 1 } };
   }
-  if (meHp <= rules.lowHpThreshold && !hasRecovery && switches.length > 0) {
+  if (meHp <= rules.lowHpThreshold && !hasRecovery && switches.length > 0 && !isAheadOnFaints(state, side, rules.tempoFaintLead)) {
     return { action: switches[0]!.action, reason: { feature: 'structuralIntegrity', contribution: 1 } };
   }
-  if (foe && foeHp <= rules.killThreshold && meHp > rules.lowHpThreshold && damaging.length > 0) {
+  if (foe && foeHp <= rules.killThreshold && meHp > rules.finishOwnHpThreshold && damaging.length > 0) {
     return { action: damaging[0]!, reason: { feature: 'winProgress', contribution: 1 } };
   }
   return null;

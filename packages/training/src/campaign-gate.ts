@@ -1,6 +1,6 @@
 import type { SearchPolicy } from '../../agent/src/interfaces.js';
 import { DeterministicBaseline } from '../../agent/src/baseline.js';
-import { PreservingPolicy } from '../../agent/src/preserving-policy.js';
+import { PreservingPolicy, v2PreservationRules, v3PreservationRules } from '../../agent/src/preserving-policy.js';
 import { runCampaign, type CampaignResult, type FrozenCampaign } from './campaign.js';
 import { passesHardPromotionGate, type PromotionGateInput, type PromotionThresholds } from './promotion.js';
 
@@ -16,6 +16,8 @@ export function defaultPolicyRegistry(): Readonly<Record<string, PolicyFactory>>
   return {
     'baseline-v1': () => new DeterministicBaseline(),
     'preserving-stall-v1': () => new PreservingPolicy(),
+    'preserving-stall-v2': () => new PreservingPolicy(v2PreservationRules),
+    'preserving-stall-v3': () => new PreservingPolicy(v3PreservationRules),
   };
 }
 

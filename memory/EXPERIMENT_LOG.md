@@ -105,3 +105,45 @@ notes: >
   hazard tempo) before a v3.
 decision: "reject" # measurable but win-rate-negative; keep observing, refine rules
 ```
+
+### EXP-20260919-003
+
+```yaml
+id: EXP-20260919-003
+status: complete
+question: "Do targeted rule fixes recover the win the preservation candidate cost on frozen-ou-v2 while keeping the catastrophic-loss protection?"
+simulator_commit: "2ddfa0476f8207e12e204b1c69f7c7683b17633c"
+format_id: "gen9customgame"
+objective_config: "default stall objective vector"
+agent_version: "preserving-stall-v2 (tempo-gated), preserving-stall-v3 (finish-own-HP)"
+dataset_version: null
+seed: "1337, 4242, 909, 2024"
+budget:
+  battles: 16
+  search_nodes: 0
+results:
+  win_rate: 0.25 (v2), 0.25 (v3) vs control 0.5
+  avg_turns: null
+  pp_depletion: null
+  forced_switches: null
+  catastrophic_loss_rate: 0.0 (both) vs 0.25 (control)
+calibration:
+  brier: null
+notes: >
+  Two rule hypotheses were implemented and measured on frozen-ou-v2:
+  v2 (preserving-stall-v2): suppress structural-preservation switches while ahead on faints by
+  2+ (tempoFaintLead: 2). v3 (preserving-stall-v3): commit to the finish when the foe is in kill
+  range even at low own HP, above critical (finishOwnHpThreshold: 0.2) so the low-HP switch no
+  longer abandons an imminent KO. BOTH are byte-identical to v1 on all four scenarios: v2's guard
+  never activates at the decisive windows, and v3's finish change never fires in the endgame.
+  Per-scenario trace (stall-vs-balance-long-s2, policySide=balance) shows the win->tie mechanism:
+  T12, the balance Corviknight is worn (78/318); the override fires in both arms, baseline
+  presses on and wins 100t / 5v6, the candidate's preservation switch to a healthy bench reroutes
+  the battle into a 106t / 4v5 tie. Root cause is not tempo or the finish rule but the T12 switch
+  decision itself: preservation applied to a BALANCE team (offensive press) sacrifices the win.
+  Iterating more hand-built rule knobs on 4 seeds has hit diminishing returns; the differential
+  is dominated by one switch at T12.
+decision: "reject" # both rule fixes inert on this campaign; change strategy (identity-gated preservation vs more seeds vs objective-vector gate metric)
+```
+
+Follow-up: consider (a) identity-gating preservation to stall teams (recovery-profile heuristic on the roster) since it demonstrably hurts the balance side's win, (b) expanding scenario seeds for statistical power before more knob-tuning, (c) evaluating the candidate against the stall objective-vector control metrics (PP depletion, forced switches, structural preservation) in addition to winRate, since the candidate measurably improves structural preservation (own faints 6->4, 5->4) at a win-rate cost.

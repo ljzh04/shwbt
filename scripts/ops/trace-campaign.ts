@@ -97,6 +97,9 @@ async function main(): Promise<void> {
   for (const trace of baseTrace) {
     if (trace.override !== '-') console.log(`base  T${trace.turn} ${trace.side} hp(p1=${trace.activeHp.p1} p2=${trace.activeHp.p2}) chosen=${trace.chosen} override=${trace.override}`);
   }
+  for (const trace of candidateTrace) {
+    if (trace.override !== '-') console.log(`cand  T${trace.turn} ${trace.side} hp(p1=${trace.activeHp.p1} p2=${trace.activeHp.p2}) chosen=${trace.chosen} override=${trace.override}`);
+  }
   let diffs = 0;
   const max = Math.max(baseTrace.length, candidateTrace.length);
   for (let i = 0; i < max; i += 1) {
@@ -105,10 +108,14 @@ async function main(): Promise<void> {
     if (!a || !b) { console.log(`trace-length mismatch ${baseTrace.length} vs ${candidateTrace.length}`); break; }
     if (a.side !== b.side || a.chosen !== b.chosen) {
       diffs += 1;
-      console.log(`DIFF T${a.turn} ${a.side} base=${a.chosen} candidate=${b.chosen}`);
+      if (diffs <= 5) console.log(`DIFF #${diffs} T${a.turn} ${a.side} hp(p1=${a.activeHp.p1} p2=${a.activeHp.p2}) base=${a.chosen} cand=${b.chosen} baseOverride=${a.override} candOverride=${b.override}`);
     }
   }
-  console.log(`scenario ${scenarioId}: ${baseTrace.length} windows, ${diffs} divergent, baseTrace overrides=${baseTrace.filter((entry) => entry.override !== '-').length}`);
+  const count = (trace: TraceEntry[], reason?: string) => {
+    const entries = reason ? trace.filter((entry) => entry.override.startsWith(reason)) : trace.filter((entry) => entry.override !== '-');
+    return entries.length;
+  };
+  console.log(`scenario ${scenarioId}: ${baseTrace.length} windows, ${diffs} divergent, baseTrace overrides=${count(baseTrace)} (structural=${count(baseTrace, 'structuralIntegrity')} win=${count(baseTrace, 'winProgress')}), candidateTrace overrides=${count(candidateTrace)} (structural=${count(candidateTrace, 'structuralIntegrity')} win=${count(candidateTrace, 'winProgress')})`);
 }
 
 void main();
