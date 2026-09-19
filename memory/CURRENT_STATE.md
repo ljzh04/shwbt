@@ -40,6 +40,7 @@ The intended stack is TypeScript/Node for simulator + online policy, PostgreSQL 
 - Dockerized collector entrypoint, atomic compaction, benchmark scheduling, and rollback pointer utilities
 - deterministic self-play collector writes raw protocol events from both player perspectives
 - simulator-owned damage oracle wraps pinned Showdown BattleActions.getDamage
+- decision sink reduces protocol sideupdates, validates pending decisions, and persists decision records
 - package boundaries/readmes for simulator, engine, agent, storage, teamlab, training, and CLI
 - roadmap, evaluation methodology, team lab design, opponent model design, and self-improvement design
 - PostgreSQL/Docker scaffolding
