@@ -38,6 +38,7 @@ The intended stack is TypeScript/Node for simulator + online policy, PostgreSQL 
 - learning utilities cover hidden-set priors, position values, hard examples, and simulated counterfactual labels
 - collector health tracker and dry-run-capable raw-file retention utility
 - Dockerized collector entrypoint, atomic compaction, benchmark scheduling, and rollback pointer utilities
+- deterministic self-play collector writes raw protocol events from both player perspectives
 - package boundaries/readmes for simulator, engine, agent, storage, teamlab, training, and CLI
 - roadmap, evaluation methodology, team lab design, opponent model design, and self-improvement design
 - PostgreSQL/Docker scaffolding

@@ -1,4 +1,4 @@
-import showdownModule from '../../../vendor/pokemon-showdown/dist/sim/index.js';
+import * as showdownModule from '../../../vendor/pokemon-showdown/dist/sim/index.js';
 import type { Action, BattleState, PlayerId } from '../../engine/src/types.js';
 import type { BattleConfig, BattleResult, SimulatorBattle } from './adapter.js';
 import { legalActionsFromRequest } from './legal-actions.js';
@@ -12,7 +12,7 @@ interface ShowdownApi {
   readonly BattleStream: new () => ShowdownStream;
 }
 
-const Showdown = showdownModule as unknown as ShowdownApi;
+const Showdown = ((showdownModule as unknown as { default?: ShowdownApi }).default ?? showdownModule) as unknown as ShowdownApi;
 
 export class ShowdownBattle implements SimulatorBattle {
   private readonly stream = new Showdown.BattleStream();
@@ -23,7 +23,12 @@ export class ShowdownBattle implements SimulatorBattle {
   private finished = false;
   private outputCount = 0;
 
-  constructor(private readonly perspective: PlayerId = 'p1') {
+  private protocolCallbacks: Promise<void> = Promise.resolve();
+
+  constructor(
+    private readonly perspective: PlayerId | 'all' = 'p1',
+    private readonly onProtocol?: (type: string, payload: string) => void | Promise<void>,
+  ) {
     void this.consumeOutput();
   }
 
@@ -63,7 +68,7 @@ export class ShowdownBattle implements SimulatorBattle {
   }
 
   async clone(): Promise<SimulatorBattle> {
-    const clone = new ShowdownBattle(this.perspective);
+    const clone = new ShowdownBattle(this.perspective, this.onProtocol);
     for (const command of this.commandLog) clone.write(command);
     await clone.waitForOutputCount(this.outputCount);
     return clone;
@@ -77,12 +82,19 @@ export class ShowdownBattle implements SimulatorBattle {
     return this.battleResult;
   }
 
+  async flush(): Promise<void> {
+    await this.protocolCallbacks;
+  }
+
   private async consumeOutput(): Promise<void> {
     for await (const chunk of this.stream) {
       this.outputCount += 1;
       const lines = String(chunk).split('\n');
       const type = lines.shift();
       const payload = lines.join('\n');
+      if (type) {
+        this.protocolCallbacks = this.protocolCallbacks.then(() => this.onProtocol?.(type, payload));
+      }
       if (type === 'update') this.consumePublicLines(payload);
       if (type === 'sideupdate') this.consumeSideUpdate(lines);
       if (type === 'end') this.consumeEnd(payload);
@@ -109,7 +121,8 @@ export class ShowdownBattle implements SimulatorBattle {
 
   private consumeSideUpdate(lines: readonly string[]): void {
     const player = lines[0];
-    if (player !== this.perspective) return;
+    if (player !== 'p1' && player !== 'p2') return;
+    if (this.perspective !== 'all' && player !== this.perspective) return;
     const payload = lines.slice(1).join('\n');
     this.consumeLines(payload);
     const request = payload.split('\n').find((line) => line.startsWith('|request|'));
