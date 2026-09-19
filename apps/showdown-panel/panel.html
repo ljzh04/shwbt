@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>StallMind Panel</title>
+<style>
+body{font-family:system-ui,sans-serif;font-size:13px;margin:0;padding:12px;max-width:520px}
+h2{font-size:15px;margin:0 0 8px}h3{font-size:12px;margin:12px 0 4px;text-transform:uppercase;color:#444}
+table{border-collapse:collapse;width:100%}.bar{height:8px;background:#eee}.bar>i{display:block;height:8px;background:#4a4}
+.tag{font-size:10px;border:1px solid #999;border-radius:3px;padding:0 4px;margin-left:6px;color:#555}
+#status{color:#666;margin-bottom:8px}
+</style>
+</head>
+<body>
+<h2>STALLMIND <span id="turn"></span></h2>
+<div id="status">Waiting for battleId…</div>
+<div id="panel" hidden>
+<h3>Us <span class="tag">KNOWN</span></h3><div id="ours"></div>
+<h3>Opponent <span class="tag">KNOWN</span></h3><div id="foe"></div>
+<h3>Candidates</h3><div id="cands"></div>
+<h3>Opp. beliefs <span class="tag">INFERRED</span></h3><div id="beliefs"></div>
+<h3>Resources <span class="tag">KNOWN</span></h3><div id="res"></div>
+<h3>Provenance</h3><div id="prov" style="color:#666"></div>
+</div>
+<script>
+const q=new URLSearchParams(location.search);
+let battleId=q.get('battleId')||'';
+let lastHash='';
+function mon(m){if(!m||!m.species)return'—';const pct=m.maxHp?Math.round(100*m.hp/m.maxHp):0;
+return`${m.species} ${m.hp}/${m.maxHp} (${pct}%) ${m.status||''}<div class="bar"><i style="width:${pct}%"></i></div><small>${(m.revealedMoves||[]).join(', ')}</small>`;}
+async function tick(){
+ if(!battleId){document.getElementById('status').textContent='Add ?battleId=… to URL.';return;}
+ let s;try{const r=await fetch(`/snapshot?battleId=${encodeURIComponent(battleId)}`);if(!r.ok){document.getElementById('status').textContent=`No snapshot (http ${r.status}).`;return;}s=await r.json();}
+ catch(e){document.getElementById('status').textContent='Analysis engine unavailable. Battle state unknown.';return;}
+ if(s.stateHash===lastHash)return;lastHash=s.stateHash;
+ document.getElementById('panel').hidden=false;
+ document.getElementById('status').textContent=`battle ${s.battleId}`;
+ document.getElementById('turn').textContent=`Turn ${s.turn} · ${s.stateHash.slice(0,8)}`;
+ document.getElementById('ours').innerHTML=mon(s.active.ours);
+ document.getElementById('foe').innerHTML=mon(s.active.opponent);
+ document.getElementById('cands').innerHTML=(s.candidates||[]).map(c=>`${c.action.kind}:${c.action.id} +${c.expectedUtility.toFixed(2)}`).join('<br>')||'—';
+ document.getElementById('beliefs').innerHTML=(s.opponentBelief.actions||[]).map(b=>`${b.label} ${Math.round(b.probability*100)}%`).join('<br>')||'—';
+ document.getElementById('res').innerHTML=Object.entries(s.resources||{}).map(([k,v])=>`${k}: ${v.value.toFixed(2)}`).join('<br>');
+ document.getElementById('prov').textContent=`sim ${s.provenance.simulatorCommit.slice(0,8)} · agent ${s.provenance.agentVersion}`;
+}
+setInterval(tick,2000);tick();
+</script>
+</body>
+</html>

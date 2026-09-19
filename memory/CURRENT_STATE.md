@@ -55,6 +55,7 @@ The intended stack is TypeScript/Node for simulator + online policy, PostgreSQL 
 - snapshots carry observable-only resource pressure from the engine evaluator; per-move damage stays deferred (needs full team sets, not invented)
 - DecisionSink feeds newly revealed opponent moves into the heuristic opponent model behind snapshot beliefs
 - local analysis server serves latest/turn-pinned snapshots over HTTP from decision NDJSON (`scripts/serve-analysis.ts`)
+- zero-dependency static panel (`apps/showdown-panel/panel.html`) served at `/`, polls snapshots with KNOWN/INFERRED labels
 - injectable PostgreSQL metadata repository covers battles, decisions, and dataset manifests
 - package boundaries/readmes for simulator, engine, agent, storage, teamlab, training, and CLI
 - roadmap, evaluation methodology, team lab design, opponent model design, and self-improvement design

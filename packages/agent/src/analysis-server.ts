@@ -8,10 +8,27 @@ function json(response: ServerResponse, status: number, body: unknown): void {
   response.end(JSON.stringify(body));
 }
 
-async function handle(request: IncomingMessage, response: ServerResponse, load: SnapshotLoader): Promise<void> {
+export interface PanelOptions {
+  readonly panelHtml: string | null;
+}
+
+function html(response: ServerResponse, body: string): void {
+  response.writeHead(200, { 'content-type': 'text/html; charset=utf-8' });
+  response.end(body);
+}
+
+async function handle(request: IncomingMessage, response: ServerResponse, load: SnapshotLoader, panel: PanelOptions): Promise<void> {
   const url = new URL(request.url ?? '/', 'http://localhost');
   if (url.pathname === '/health') {
     json(response, 200, { status: 'ok' });
+    return;
+  }
+  if (url.pathname === '/') {
+    if (!panel.panelHtml) {
+      json(response, 404, { error: 'panel not configured' });
+      return;
+    }
+    html(response, panel.panelHtml);
     return;
   }
   if (url.pathname === '/snapshot') {
@@ -40,9 +57,9 @@ async function handle(request: IncomingMessage, response: ServerResponse, load: 
   json(response, 404, { error: 'not found' });
 }
 
-export function createAnalysisServer(load: SnapshotLoader): Server {
+export function createAnalysisServer(load: SnapshotLoader, panel: PanelOptions = { panelHtml: null }): Server {
   return createServer((request, response) => {
-    handle(request, response, load).catch(() => {
+    handle(request, response, load, panel).catch(() => {
       if (!response.headersSent) json(response, 500, { error: 'internal error' });
     });
   });

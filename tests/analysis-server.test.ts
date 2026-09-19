@@ -23,12 +23,16 @@ async function main(): Promise<void> {
   const stored = await readAnalysisSnapshots(join(root, 'missing.ndjson'));
   assert.deepEqual(stored, []);
 
-  const server = createAnalysisServer(() => readAnalysisSnapshots(path));
+  const server = createAnalysisServer(() => readAnalysisSnapshots(path), { panelHtml: '<html>panel</html>' });
   await new Promise<void>((resolve) => server.listen(0, resolve));
   const port = (server.address() as AddressInfo).port;
   try {
     const health = await fetch(`http://localhost:${port}/health`);
     assert.equal(health.status, 200);
+    const panel = await fetch(`http://localhost:${port}/`);
+    assert.equal(panel.status, 200);
+    assert.match(panel.headers.get('content-type') ?? '', /text\/html/);
+    assert.match(await panel.text(), /panel/);
     const latest = await fetch(`http://localhost:${port}/snapshot?battleId=battle-1`);
     assert.equal(latest.status, 200);
     const body = await latest.json() as { turn: number; battleId: string; stateHash: string };
