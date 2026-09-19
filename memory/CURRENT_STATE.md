@@ -47,6 +47,7 @@ The intended stack is TypeScript/Node for simulator + online policy, PostgreSQL 
 - DecisionSink finalizes legal pending actions with transition and objective-delta telemetry
 - replay ingestion reprocesses saved raw NDJSON sequentially into validated decisions
 - persistent content-hash deduplication survives collector restart
+- deterministic frozen benchmark runner reports accuracy and catastrophic-loss rate
 - package boundaries/readmes for simulator, engine, agent, storage, teamlab, training, and CLI
 - roadmap, evaluation methodology, team lab design, opponent model design, and self-improvement design
 - PostgreSQL/Docker scaffolding
