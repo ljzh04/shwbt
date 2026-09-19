@@ -7,7 +7,7 @@
   ],
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "tsx tests/simulator.test.ts && tsx tests/raw-event-writer.test.ts && tsx tests/decision-extractor.test.ts && tsx tests/quality.test.ts && tsx tests/deduplication.test.ts && tsx tests/dataset-manifest.test.ts && tsx tests/checkpoint.test.ts && tsx tests/evaluator.test.ts && tsx tests/baseline.test.ts && tsx tests/one-ply.test.ts && tsx tests/opponent-model.test.ts && tsx tests/expected-value.test.ts && tsx tests/p2.test.ts && tsx tests/training.test.ts && tsx tests/learning.test.ts && tsx tests/operations.test.ts && tsx tests/operations-artifacts.test.ts && tsx tests/selfplay-collector.test.ts",
+    "test": "tsx tests/simulator.test.ts && tsx tests/raw-event-writer.test.ts && tsx tests/decision-extractor.test.ts && tsx tests/quality.test.ts && tsx tests/deduplication.test.ts && tsx tests/dataset-manifest.test.ts && tsx tests/checkpoint.test.ts && tsx tests/evaluator.test.ts && tsx tests/baseline.test.ts && tsx tests/one-ply.test.ts && tsx tests/opponent-model.test.ts && tsx tests/expected-value.test.ts && tsx tests/p2.test.ts && tsx tests/training.test.ts && tsx tests/learning.test.ts && tsx tests/operations.test.ts && tsx tests/operations-artifacts.test.ts && tsx tests/selfplay-collector.test.ts && tsx tests/damage.test.ts",
     "lint": "npm run lint --workspaces --if-present",
     "simulator:fetch": "node scripts/fetch-showdown.mjs",
     "collect": "tsx scripts/collect.ts",
