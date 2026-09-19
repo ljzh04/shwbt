@@ -92,7 +92,14 @@ export class BattleProtocolReducer implements ProtocolReducer {
         this.updateMove(parts[2], parts[3]);
         break;
       case '-status':
-        this.updateStatus(parts[2], parts[3]);
+        this.updateStatus(parts[2], parts[3] ?? null);
+        break;
+      case '-curestatus':
+        this.updateStatus(parts[2], null);
+        break;
+      case '-boost':
+      case '-unboost':
+        this.updateBoost(parts[2], parts[3], parts[4], event === '-boost' ? 1 : -1);
         break;
       case '-damage':
       case '-heal':
@@ -155,10 +162,23 @@ export class BattleProtocolReducer implements ProtocolReducer {
     this.replacePokemon(player, { ...pokemon, revealedMoves: [...pokemon.revealedMoves, move] });
   }
 
-  private updateStatus(reference: string | undefined, status: string | undefined): void {
+  private updateStatus(reference: string | undefined, status: string | null): void {
     const pokemon = this.findByReference(reference);
-    if (!pokemon || !status) return;
+    if (!pokemon) return;
     this.replacePokemon(pokemon.player, { ...pokemon.value, status });
+  }
+
+  // ponytail: show + amount as reported; simulator clamps at ±6, fields never leave [-6, 6].
+  private updateBoost(reference: string | undefined, stat: string | undefined, amount: string | undefined, sign: number): void {
+    const pokemon = this.findByReference(reference);
+    const key = stat?.toLowerCase();
+    const delta = Number(amount);
+    if (!pokemon || !key || !Number.isFinite(delta)) return;
+    const boosts = { ...pokemon.value.boosts };
+    const stage = Math.min(6, Math.max(-6, (boosts[key] ?? 0) + sign * delta));
+    if (stage === 0) delete boosts[key];
+    else boosts[key] = stage;
+    this.replacePokemon(pokemon.player, { ...pokemon.value, boosts });
   }
 
   private updateHp(reference: string | undefined, hpText: string | undefined): void {
