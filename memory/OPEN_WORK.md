@@ -68,8 +68,8 @@ Priority order is intentionally coarse. Pick one vertical slice at a time.
 ## P3 — operations
 
 - [ ] Dockerized collector.
-- [ ] Collector health metrics.
-- [ ] Disk/retention policy.
+- [x] Collector health metrics.
+- [x] Disk/retention policy.
 - [ ] Dataset compaction.
 - [ ] Scheduled benchmark runs.
 - [ ] Rollback tooling.
