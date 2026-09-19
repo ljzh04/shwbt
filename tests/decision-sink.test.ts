@@ -25,6 +25,10 @@ async function main(): Promise<void> {
   assert.equal(analysis.payload.turn, decision?.turn);
   assert.equal(analysis.payload.stateHash, decision?.state_hash);
   assert.equal(analysis.payload.perspective, 'p1');
+  const scored = (lines[1] ? JSON.parse(lines[1]) : null) as { payload: { candidates: { action: { kind: string; id: string }; expectedUtility: number }[] } } | null;
+  assert.equal(scored?.payload.candidates.length, 1);
+  assert.equal(scored?.payload.candidates[0]?.action.id, 'recover');
+  assert.equal(typeof scored?.payload.candidates[0]?.expectedUtility, 'number');
   const reveal: RawEvent = {
     ...event, event_id: 'event-1', sequence: 1,
     payload: { type: 'sideupdate', message: `p1\n|switch|p2a: Gholdengo|100/100\n|move|p2a: Gholdengo|Shadow Ball\n|request|${request}` },

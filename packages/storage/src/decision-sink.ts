@@ -1,6 +1,7 @@
 import type { Action, BattleState, EvaluationVector, PlayerId } from '../../engine/src/types.js';
 import { buildAnalysisSnapshot } from '../../agent/src/analysis-snapshot.js';
-import type { OpponentModel } from '../../agent/src/interfaces.js';
+import { DeterministicBaseline } from '../../agent/src/baseline.js';
+import type { ActionDecision, OpponentModel, SearchPolicy } from '../../agent/src/interfaces.js';
 import { HeuristicOpponentModel } from '../../agent/src/opponent-model.js';
 import { BattleProtocolReducer } from '../../simulator/src/protocol-reducer.js';
 import { extractPendingDecision, type PendingDecisionPoint } from './decision-extractor.js';
@@ -16,6 +17,7 @@ export class DecisionSink {
   constructor(
     private readonly writer: RawEventWriter,
     private readonly opponentModel: OpponentModel = new HeuristicOpponentModel(),
+    private readonly policy: SearchPolicy = new DeterministicBaseline(),
   ) {}
 
   async accept(event: RawEvent): Promise<PendingDecisionPoint | null> {
@@ -61,11 +63,18 @@ export class DecisionSink {
       payload_type: 'decision',
       payload: decision as unknown as Record<string, unknown>,
     });
-    // ponytail: pending snapshot is unscored (no invented utilities); scoring lands in finalize path later.
+    // ponytail: baseline scoring is deterministic and cheap; learned policies plug in via constructor.
+    let scored: ActionDecision | undefined;
+    try {
+      scored = await this.policy.choose({ state: decision.state, legalActions: decision.legal_actions });
+    } catch {
+      scored = undefined;
+    }
     const snapshot = buildAnalysisSnapshot({
       battleId: decision.battle_id,
       state: decision.state,
       perspective: decision.actor,
+      ...(scored ? { decision: scored } : {}),
       opponentModel: this.opponentModel,
       simulatorCommit: decision.simulator_commit,
       agentVersion: decision.agent_version,

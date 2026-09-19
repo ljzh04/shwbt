@@ -54,6 +54,7 @@ The intended stack is TypeScript/Node for simulator + online policy, PostgreSQL 
 - DecisionSink persists unscored analysis snapshot events alongside pending decisions
 - snapshots carry observable-only resource pressure from the engine evaluator; per-move damage stays deferred (needs full team sets, not invented)
 - DecisionSink feeds newly revealed opponent moves into the heuristic opponent model behind snapshot beliefs
+- pending snapshots carry deterministic baseline candidate scores (injectable policy, silent fallback to unscored)
 - local analysis server serves latest/turn-pinned snapshots over HTTP from decision NDJSON (`scripts/serve-analysis.ts`)
 - zero-dependency static panel (`apps/showdown-panel/panel.html`) served at `/`, polls snapshots with KNOWN/INFERRED labels
 - `/timeline` endpoint plus panel timeline view shows per-turn top candidate, newly revealed opponent moves, and top belief
