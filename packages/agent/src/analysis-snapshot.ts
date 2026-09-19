@@ -1,4 +1,5 @@
 import type { Action, BattleState, PlayerId } from '../../engine/src/types.js';
+import { evaluateState } from '../../engine/src/evaluator.js';
 import { hashBattleState } from '../../simulator/src/state-hash.js';
 import type { ActionDecision, OpponentModel } from './interfaces.js';
 
@@ -27,6 +28,11 @@ export interface CandidateView {
   readonly confidence?: number;
 }
 
+export interface PressureMetric {
+  readonly value: number;
+  readonly kind: ProvenanceLabel;
+}
+
 export interface PredictionSnapshot {
   readonly battleId: string;
   readonly turn: number;
@@ -35,6 +41,13 @@ export interface PredictionSnapshot {
   readonly active: { readonly ours: SnapshotPokemon; readonly opponent: SnapshotPokemon };
   readonly opponentBelief: { readonly actions: readonly ProbabilityEntry[]; readonly sets: readonly ProbabilityEntry[] };
   readonly candidates: readonly CandidateView[];
+  readonly resources: {
+    readonly hpPressure: PressureMetric;
+    readonly ppPressure: PressureMetric;
+    readonly hazardPressure: PressureMetric;
+    readonly statusPressure: PressureMetric;
+    readonly structuralIntegrity: PressureMetric;
+  };
   readonly provenance: {
     readonly simulatorCommit: string;
     readonly agentVersion: string;
@@ -71,6 +84,9 @@ export function buildAnalysisSnapshot(input: {
   const opponent: PlayerId = perspective === 'p1' ? 'p2' : 'p1';
   const opponentModelActions = input.opponentModel?.predictActions(input.state).actions ?? [];
   const opponentModelSets = input.opponentModel?.predictSets(input.state).hypotheses ?? [];
+  // ponytail: resources reuse evaluateState directly; observable-only, no inferred PP/status.
+  const features = evaluateState(input.state);
+  const known = (value: number): PressureMetric => ({ value, kind: 'KNOWN' });
   return {
     battleId: input.battleId,
     turn: input.state.turn,
@@ -94,6 +110,13 @@ export function buildAnalysisSnapshot(input: {
       action: candidate.action,
       expectedUtility: candidate.expectedValue,
     })),
+    resources: {
+      hpPressure: known(features.winProgress),
+      ppPressure: known(features.opponentPPDepletion),
+      hazardPressure: known(features.hazardPressure),
+      statusPressure: known(features.statusPressure),
+      structuralIntegrity: known(features.structuralIntegrity),
+    },
     provenance: {
       simulatorCommit: input.simulatorCommit,
       agentVersion: input.agentVersion,

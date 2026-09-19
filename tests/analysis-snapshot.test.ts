@@ -42,6 +42,11 @@ assert.deepEqual(snapshot.active.opponent.hazards, { stealthrock: 1 });
 assert.equal(snapshot.candidates.length, 2);
 assert.deepEqual(snapshot.opponentBelief, { actions: [], sets: [] });
 assert.equal(snapshot.provenance.simulatorCommit, '2ddfa0476f8207e12e204b1c69f7c7683b17633c');
+assert.equal(snapshot.resources.hpPressure.value, 0.5);
+assert.equal(snapshot.resources.ppPressure.value, 0);
+assert.ok(Math.abs(snapshot.resources.hazardPressure.value - 1 / 6) < 1e-12);
+assert.equal(snapshot.resources.statusPressure.value, 0);
+assert.equal(snapshot.resources.hazardPressure.kind, 'KNOWN');
 
 console.log('analysis-snapshot ok', snapshot.stateHash);
 }
