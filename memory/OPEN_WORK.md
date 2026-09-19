@@ -74,6 +74,27 @@ Priority order is intentionally coarse. Pick one vertical slice at a time.
 - [x] Scheduled benchmark runs.
 - [x] Rollback tooling.
 
+## Integration Hardening — next priority
+
+- [ ] Connect self-play collector to `DecisionSink` and persist validated decision records during battles.
+- [ ] Finalize pending decisions with chosen action, observed transition, and objective delta.
+- [ ] Persist battle completion/outcome events and classify abnormal termination.
+- [ ] Validate emitted event and decision records against JSON schemas.
+- [ ] Make collector raw/decision paths configurable instead of hard-coded.
+- [ ] Add deterministic multi-turn self-play fixture with repeated state-hash comparison.
+- [ ] Add replay ingestion from saved protocol NDJSON.
+- [ ] Replace in-memory deduplication with restart-safe content-hash indexing.
+- [ ] Add PostgreSQL repository for battles, decisions, and dataset manifests.
+- [ ] Run frozen benchmark harness against baseline and candidate policies.
+- [ ] Verify Docker collector image end to end.
+
+## Known implementation ceilings
+
+- Current reducer covers only a conservative subset of protocol events.
+- Current decision records are pending-only; chosen action and transition fields remain unpopulated.
+- Current damage wrapper is a direct Showdown oracle, not a full battle-state damage feature extractor.
+- Learning and team-lab modules are deterministic baselines, not trained models or evolutionary runs.
+
 ## Explicitly deferred
 
 - LLM in authoritative move-selection path.
