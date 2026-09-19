@@ -1,5 +1,8 @@
 import assert from 'node:assert/strict';
-import { DeduplicatingEventSink, rawEventHash } from '../packages/storage/src/deduplication.js';
+import { DeduplicatingEventSink, PersistentDeduplicatingEventSink, rawEventHash } from '../packages/storage/src/deduplication.js';
+import { mkdtemp } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import type { RawEvent } from '../packages/storage/src/raw-event-writer.js';
 
 const event: RawEvent = {
@@ -15,6 +18,12 @@ async function main(): Promise<void> {
   assert.equal(await sink.appendIfNew({ ...event }), false);
   assert.equal(appended.length, 1);
   assert.equal(rawEventHash(event), rawEventHash({ ...event }));
+  const directory = await mkdtemp(join(tmpdir(), 'stall-ai-dedupe-'));
+  const indexPath = join(directory, 'hashes.ndjson');
+  const first = new PersistentDeduplicatingEventSink(indexPath, async () => undefined);
+  assert.equal(await first.appendIfNew(event), true);
+  const second = new PersistentDeduplicatingEventSink(indexPath, async () => { throw new Error('should not append duplicate'); });
+  assert.equal(await second.appendIfNew(event), false);
   console.log('deduplication tests ok');
 }
 
