@@ -8,10 +8,15 @@ import { RawEventWriter } from '../packages/storage/src/raw-event-writer.js';
 async function main(): Promise<void> {
   const root = await mkdtemp(join(tmpdir(), 'stall-ai-selfplay-'));
   const path = join(root, 'events.ndjson');
+  const decisionsPath = join(root, 'decisions.ndjson');
   const writer = new RawEventWriter(path);
+  const decisionWriter = new RawEventWriter(decisionsPath);
+  const { DecisionSink } = await import('../packages/storage/src/decision-sink.js');
+  const decisionSink = new DecisionSink(decisionWriter);
   let sequence = 0;
   const battle = new ShowdownBattle('all', (type, payload) => {
-    return writer.append({ schema_version: '1.0.0', event_id: `event-${sequence}`, run_id: 'run-1', battle_id: 'battle-1', sequence: sequence++, timestamp: '2026-09-19T00:00:00.000Z', source: 'selfplay', simulator_commit: 'a'.repeat(40), format_id: 'gen9customgame', agent_version: 'test', payload_type: 'protocol', payload: { type, message: payload } });
+    const event = { schema_version: '1.0.0', event_id: `event-${sequence}`, run_id: 'run-1', battle_id: 'battle-1', sequence: sequence++, timestamp: '2026-09-19T00:00:00.000Z', source: 'selfplay' as const, simulator_commit: 'a'.repeat(40), format_id: 'gen9customgame', agent_version: 'test', payload_type: 'protocol' as const, payload: { type, message: payload } };
+    return writer.append(event).then(() => decisionSink.accept(event)).then(() => undefined);
   });
   const team = JSON.stringify([{ species: 'Pikachu', ability: 'Static', item: 'Light Ball', moves: ['Thunderbolt', 'Quick Attack'] }]);
   await battle.start({ formatId: 'gen9customgame', p1Name: 'p1', p2Name: 'p2', p1Team: team, p2Team: team, seed: 1337 });
@@ -22,6 +27,7 @@ async function main(): Promise<void> {
   }
   await battle.flush();
   assert.ok((await readFile(path, 'utf8')).trim().length > 0);
+  assert.ok((await readFile(decisionsPath, 'utf8')).trim().length > 0);
   console.log('selfplay collector tests ok');
 }
 

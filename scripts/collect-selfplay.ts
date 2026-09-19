@@ -1,13 +1,22 @@
 import { randomUUID } from 'node:crypto';
 import { ShowdownBattle } from '../packages/simulator/src/battle-stream.js';
+import { DecisionSink } from '../packages/storage/src/decision-sink.js';
 import { RawEventWriter } from '../packages/storage/src/raw-event-writer.js';
+
+function option(name: string, fallback: string): string {
+  const index = process.argv.indexOf(name);
+  return index >= 0 ? process.argv[index + 1] ?? fallback : fallback;
+}
 
 async function main(): Promise<void> {
   const team = JSON.stringify([{ species: 'Pikachu', ability: 'Static', item: 'Light Ball', moves: ['Thunderbolt', 'Quick Attack'] }]);
   const runId = randomUUID();
-  const writer = new RawEventWriter('data/raw/selfplay.ndjson');
+  const rawPath = option('--raw', 'data/raw/selfplay.ndjson');
+  const decisionPath = option('--decisions', 'data/derived/selfplay-decisions.ndjson');
+  const writer = new RawEventWriter(rawPath);
+  const decisionSink = new DecisionSink(new RawEventWriter(decisionPath));
   let sequence = 0;
-  const battle = new ShowdownBattle('all', (type, payload) => {
+  const battle = new ShowdownBattle('all', async (type, payload) => {
     const event = {
       schema_version: '1.0.0', event_id: randomUUID(), run_id: runId, battle_id: runId, sequence,
       timestamp: new Date().toISOString(), source: 'selfplay' as const,
@@ -15,7 +24,8 @@ async function main(): Promise<void> {
       agent_version: 'collector-dev', payload_type: 'protocol' as const, payload: { type, message: payload },
     };
     sequence += 1;
-    return writer.append(event);
+    await writer.append(event);
+    await decisionSink.accept(event);
   });
 
   await battle.start({ formatId: 'gen9customgame', p1Name: 'selfplay-p1', p2Name: 'selfplay-p2', p1Team: team, p2Team: team, seed: 1337 });

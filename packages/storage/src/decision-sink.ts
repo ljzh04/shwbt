@@ -6,6 +6,7 @@ import { RawEventWriter, type RawEvent } from './raw-event-writer.js';
 
 export class DecisionSink {
   private readonly reducers = new Map<string, BattleProtocolReducer>();
+  private nextSequence = 0;
 
   constructor(private readonly writer: RawEventWriter) {}
 
@@ -30,6 +31,7 @@ export class DecisionSink {
     await this.writer.append({
       ...event,
       event_id: `${event.event_id}:decision`,
+      sequence: this.nextSequence++,
       payload_type: 'decision',
       payload: decision as unknown as Record<string, unknown>,
     });
