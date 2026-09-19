@@ -9,12 +9,31 @@ export interface LiveFrameFeed {
   readonly battleId: string;
   readonly frames: readonly string[];
   readonly perspective?: PlayerId;
+  readonly username?: string;
+}
+
+function normalizeUserid(value: string): string {
+  return value.trim().toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+// ponytail: the page's own player line names the active user; one regex, no state files.
+function detectPerspective(frames: readonly string[], username: string | undefined): PlayerId | null {
+  if (!username) return null;
+  const userid = normalizeUserid(username);
+  for (const frame of frames) {
+    for (const line of frame.split('\n')) {
+      const match = /^\|player\|(p[12])\|[^|]*\|userid\|([^|]+)/.exec(line.trim());
+      if (match && normalizeUserid(match[2] ?? '') === userid) return match[1] as PlayerId;
+    }
+  }
+  return null;
 }
 
 // ponytail: live battles reuse the same decisions NDJSON + snapshot reader the panel already polls.
 export class LiveBattleStore {
   private readonly reducers = new Map<string, BattleProtocolReducer>();
   private readonly lastTurn = new Map<string, number>();
+  private readonly perspectives = new Map<string, PlayerId>();
   private readonly opponentModel = new HeuristicOpponentModel();
   private nextSequence = 0;
 
@@ -38,10 +57,13 @@ export class LiveBattleStore {
       const turn = reducer.snapshot().turn;
       if (turn !== this.lastTurn.get(feed.battleId)) {
         this.lastTurn.set(feed.battleId, turn);
+        const detected = detectPerspective(feed.frames, feed.username);
+        if (detected) this.perspectives.set(feed.battleId, detected);
+        const perspective = this.perspectives.get(feed.battleId) ?? feed.perspective ?? 'p1';
         const snapshot = buildAnalysisSnapshot({
           battleId: feed.battleId,
           state: reducer.snapshot(),
-          perspective: feed.perspective ?? 'p1',
+          perspective,
           opponentModel: this.opponentModel,
           simulatorCommit: this.simulatorCommit,
           agentVersion: this.agentVersion,

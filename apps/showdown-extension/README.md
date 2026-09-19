@@ -24,7 +24,8 @@ page WebSocket (own battle log)
 ## Boundaries
 
 - Frames are forwarded only while the battle page is open; nothing is stored client-side.
-- Perspective defaults to p1 in the server; the user's actual side is not yet auto-detected.
+- Perspective is auto-detected from the `|player|` line when the content script reads the
+  logged-in username from `#userbar .username`; falls back to p1.
 - The bridge only sees the page's own WebSocket frames (same text as the battle log); no
   other traffic is observed.
 - Server must be reachable at `http://127.0.0.1:3100`; failures stay silent (analysis best-effort).

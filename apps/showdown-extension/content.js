@@ -15,5 +15,7 @@ const battleId = () => {
 document.addEventListener('stallmind:frame', (event) => {
   const frame = event.detail && event.detail.frame;
   if (typeof frame !== 'string') return;
-  browser.runtime.sendMessage({ type: 'stallmind:frame', battleId: battleId(), frame }).catch(() => {});
+  const el = document.querySelector('#userbar .username');
+  const username = el && el.textContent ? el.textContent.trim() : '';
+  browser.runtime.sendMessage({ type: 'stallmind:frame', battleId: battleId(), frame, username }).catch(() => {});
 });

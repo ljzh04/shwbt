@@ -8,6 +8,7 @@ export interface LiveFrameFeed {
   readonly battleId: string;
   readonly frames: readonly string[];
   readonly perspective?: PlayerId;
+  readonly username?: string;
 }
 
 export interface LiveIngest {
@@ -64,7 +65,8 @@ async function handle(request: IncomingMessage, response: ServerResponse, load: 
       return;
     }
     const perspective = feed.perspective === 'p2' ? 'p2' : 'p1';
-    const accepted = await ingest.accept({ battleId: feed.battleId, frames, perspective });
+    const username = typeof feed.username === 'string' ? feed.username.slice(0, 32) : undefined;
+    const accepted = await ingest.accept({ battleId: feed.battleId, frames, perspective, ...(username === undefined ? {} : { username }) });
     json(response, 202, { accepted });
     return;
   }

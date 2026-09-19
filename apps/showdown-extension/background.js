@@ -6,7 +6,7 @@ const INGEST = 'http://127.0.0.1:3100/ingest';
 const batches = new Map();
 const timers = new Map();
 
-const flush = (battleId) => {
+const flush = (battleId, username) => {
   const frames = batches.get(battleId) || [];
   batches.delete(battleId);
   timers.delete(battleId);
@@ -14,7 +14,7 @@ const flush = (battleId) => {
   fetch(INGEST, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ battleId, frames }),
+    body: JSON.stringify({ battleId, frames, username }),
   }).catch(() => {});
 };
 
@@ -24,6 +24,6 @@ browser.runtime.onMessage.addListener((message) => {
   frames.push(message.frame);
   batches.set(message.battleId, frames);
   if (!timers.has(message.battleId)) {
-    timers.set(message.battleId, setTimeout(() => flush(message.battleId), 250));
+    timers.set(message.battleId, setTimeout(() => flush(message.battleId, message.username), 250));
   }
 });

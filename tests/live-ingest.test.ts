@@ -53,6 +53,12 @@ async function main(): Promise<void> {
     body: JSON.stringify({ frames }),
   });
   assert.equal(mishap.status, 400);
+
+  const asBob = new LiveBattleStore(new RawEventWriter(join(root, 'p2.ndjson')), commit);
+  await asBob.accept({ battleId: 'battle-live-3', frames: frames.slice(0, 2), username: 'bob' });
+  const bobPersisted = await readAnalysisSnapshots(join(root, 'p2.ndjson'));
+  assert.equal(bobPersisted[bobPersisted.length - 1].perspective, 'p2');
+
   const snapshot = await fetch(`${base}/snapshot?battleId=battle-live-2`);
   assert.equal(snapshot.status, 200);
   const snapshotBody = await snapshot.json() as { battleId: string; turn: number };

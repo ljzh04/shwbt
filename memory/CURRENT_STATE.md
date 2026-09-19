@@ -64,6 +64,7 @@ The intended stack is TypeScript/Node for simulator + online policy, PostgreSQL 
 - self-play collector loads real Gen9 OU teams from `data/teams/` (`--p1-team`/`--p2-team`); stall, balance-pivot, and Meowscarada BO sample teams included
 - reducer tracks stat stages (-boost/-unboost, clamped ±6) and curing (-curestatus); screens and other side conditions stay untracked
 - analysis server accepts POST /ingest; LiveBattleStore reduces live protocol frames and appends analysis snapshots to the decisions NDJSON the panel polls
+- live perspective auto-detected from the `|player|...|userid|...` line when the extension reports the logged-in username; otherwise defaults to p1
 - Firefox MV3 analysis extension (`apps/showdown-extension/`) bridges the page's own WebSocket battle log to /ingest via main-world bridge + content script + background worker
 - injectable PostgreSQL metadata repository covers battles, decisions, and dataset manifests
 - package boundaries/readmes for simulator, engine, agent, storage, teamlab, training, and CLI
@@ -78,7 +79,7 @@ The intended stack is TypeScript/Node for simulator + online policy, PostgreSQL 
 - pending decision finalization is exposed, but self-play policy telemetry does not yet call it automatically
 - learning/team-lab utilities are deterministic baselines, not trained models or evolutionary runs
 - benchmark runner is a metric harness, not yet a full simulator-backed frozen campaign
-- live extension bridge is syntax-checked only, not verified against the live Showdown client; live perspective defaults to p1
+- live extension bridge is syntax-checked only, not verified against the live Showdown client; username scraper reads `#userbar .username`
 
 ## Current target
 
