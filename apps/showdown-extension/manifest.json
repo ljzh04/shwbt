@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "StallMind Analysis",
+  "description": "Analysis-only companion for the local StallMind server. Observes only the current battle's own protocol stream and forwards it to http://127.0.0.1:3100. Never submits moves.",
+  "version": "0.1.0",
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "stallmind-analysis@shwbt.local",
+      "strict_min_version": "121.0"
+    }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://play.pokemonshowdown.com/*",
+        "https://*.psim.us/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["bridge.js"],
+      "matches": [
+        "https://play.pokemonshowdown.com/*",
+        "https://*.psim.us/*"
+      ]
+    }
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "host_permissions": [
+    "https://play.pokemonshowdown.com/*",
+    "https://*.psim.us/*",
+    "http://127.0.0.1:3100/*",
+    "http://localhost:3100/*"
+  ]
+}

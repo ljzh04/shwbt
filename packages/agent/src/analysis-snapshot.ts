@@ -85,7 +85,7 @@ export function buildAnalysisSnapshot(input: {
   const opponentModelActions = input.opponentModel?.predictActions(input.state).actions ?? [];
   const opponentModelSets = input.opponentModel?.predictSets(input.state).hypotheses ?? [];
   // ponytail: resources reuse evaluateState directly; observable-only, no inferred PP/status.
-  const features = evaluateState(input.state);
+  const features = evaluateState(input.state, perspective);
   const known = (value: number): PressureMetric => ({ value, kind: 'KNOWN' });
   return {
     battleId: input.battleId,

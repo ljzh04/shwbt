@@ -1,10 +1,21 @@
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http';
+import type { PlayerId } from '../../engine/src/types.js';
 import type { PredictionSnapshot } from './analysis-snapshot.js';
 
 export type SnapshotLoader = () => Promise<readonly PredictionSnapshot[]>;
 
+export interface LiveFrameFeed {
+  readonly battleId: string;
+  readonly frames: readonly string[];
+  readonly perspective?: PlayerId;
+}
+
+export interface LiveIngest {
+  accept(feed: LiveFrameFeed): Promise<number>;
+}
+
 function json(response: ServerResponse, status: number, body: unknown): void {
-  response.writeHead(status, { 'content-type': 'application/json' });
+  response.writeHead(status, { 'content-type': 'application/json', 'access-control-allow-origin': '*' });
   response.end(JSON.stringify(body));
 }
 
@@ -17,8 +28,46 @@ function html(response: ServerResponse, body: string): void {
   response.end(body);
 }
 
-async function handle(request: IncomingMessage, response: ServerResponse, load: SnapshotLoader, panel: PanelOptions): Promise<void> {
+async function readJson(request: IncomingMessage): Promise<string> {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    request.on('data', (chunk: Buffer | string) => {
+      body += chunk.toString('utf8');
+    });
+    request.on('end', () => resolve(body));
+    request.on('error', reject);
+  });
+}
+
+async function handle(request: IncomingMessage, response: ServerResponse, load: SnapshotLoader, panel: PanelOptions, ingest: LiveIngest | null): Promise<void> {
   const url = new URL(request.url ?? '/', 'http://localhost');
+  if (url.pathname === '/ingest') {
+    if (!ingest) {
+      json(response, 404, { error: 'ingest not configured' });
+      return;
+    }
+    if (request.method !== 'POST') {
+      json(response, 405, { error: 'POST required' });
+      return;
+    }
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(await readJson(request));
+    } catch {
+      json(response, 400, { error: 'invalid JSON body' });
+      return;
+    }
+    const feed = parsed as Partial<LiveFrameFeed>;
+    const frames = Array.isArray(feed.frames) ? feed.frames.filter((frame) => typeof frame === 'string') : [];
+    if (typeof feed.battleId !== 'string' || feed.battleId.length === 0) {
+      json(response, 400, { error: 'battleId string required' });
+      return;
+    }
+    const perspective = feed.perspective === 'p2' ? 'p2' : 'p1';
+    const accepted = await ingest.accept({ battleId: feed.battleId, frames, perspective });
+    json(response, 202, { accepted });
+    return;
+  }
   if (url.pathname === '/health') {
     json(response, 200, { status: 'ok' });
     return;
@@ -69,9 +118,9 @@ async function handle(request: IncomingMessage, response: ServerResponse, load: 
   json(response, 404, { error: 'not found' });
 }
 
-export function createAnalysisServer(load: SnapshotLoader, panel: PanelOptions = { panelHtml: null }): Server {
+export function createAnalysisServer(load: SnapshotLoader, panel: PanelOptions = { panelHtml: null }, ingest: LiveIngest | null = null): Server {
   return createServer((request, response) => {
-    handle(request, response, load, panel).catch(() => {
+    handle(request, response, load, panel, ingest).catch(() => {
       if (!response.headersSent) json(response, 500, { error: 'internal error' });
     });
   });

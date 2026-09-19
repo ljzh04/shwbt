@@ -3,11 +3,12 @@
   "private": true,
   "version": "0.1.0",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "apps/*"
   ],
   "scripts": {
     "typecheck": "tsc --noEmit",
-    "test": "tsx tests/simulator.test.ts && tsx tests/raw-event-writer.test.ts && tsx tests/decision-extractor.test.ts && tsx tests/quality.test.ts && tsx tests/deduplication.test.ts && tsx tests/dataset-manifest.test.ts && tsx tests/checkpoint.test.ts && tsx tests/evaluator.test.ts && tsx tests/baseline.test.ts && tsx tests/one-ply.test.ts && tsx tests/opponent-model.test.ts && tsx tests/expected-value.test.ts && tsx tests/p2.test.ts && tsx tests/training.test.ts && tsx tests/learning.test.ts && tsx tests/operations.test.ts && tsx tests/operations-artifacts.test.ts && tsx tests/selfplay-collector.test.ts && tsx tests/damage.test.ts && tsx tests/decision-sink.test.ts && tsx tests/schema-validation.test.ts && tsx tests/decision-finalization.test.ts && tsx tests/replay-ingest.test.ts && tsx tests/benchmark.test.ts && tsx tests/repository.test.ts && tsx tests/determinism.test.ts && tsx tests/analysis-snapshot.test.ts && tsx tests/analysis-server.test.ts",
+    "test": "tsx tests/simulator.test.ts && tsx tests/raw-event-writer.test.ts && tsx tests/decision-extractor.test.ts && tsx tests/quality.test.ts && tsx tests/deduplication.test.ts && tsx tests/dataset-manifest.test.ts && tsx tests/checkpoint.test.ts && tsx tests/evaluator.test.ts && tsx tests/baseline.test.ts && tsx tests/one-ply.test.ts && tsx tests/opponent-model.test.ts && tsx tests/expected-value.test.ts && tsx tests/p2.test.ts && tsx tests/training.test.ts && tsx tests/learning.test.ts && tsx tests/operations.test.ts && tsx tests/operations-artifacts.test.ts && tsx tests/selfplay-collector.test.ts && tsx tests/damage.test.ts && tsx tests/decision-sink.test.ts && tsx tests/schema-validation.test.ts && tsx tests/decision-finalization.test.ts && tsx tests/replay-ingest.test.ts && tsx tests/benchmark.test.ts && tsx tests/repository.test.ts && tsx tests/determinism.test.ts && tsx tests/analysis-snapshot.test.ts && tsx tests/analysis-server.test.ts && tsx tests/live-ingest.test.ts",
     "lint": "npm run lint --workspaces --if-present",
     "simulator:fetch": "node scripts/fetch-showdown.mjs",
     "collect": "tsx scripts/collect.ts",

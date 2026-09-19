@@ -1,0 +1,9 @@
+{
+  "name": "@stallmind/showdown-extension",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Firefox MV3 analysis extension bridging the current battle's protocol stream to the local analysis server.",
+  "scripts": {
+    "lint": "node --check content.js && node --check background.js && node --check bridge.js"
+  }
+}
