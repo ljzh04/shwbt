@@ -58,12 +58,12 @@ Priority order is intentionally coarse. Pick one vertical slice at a time.
 
 ## P3 — learning
 
-- [ ] Candidate action predictor.
+- [x] Candidate action predictor.
 - [ ] Hidden-set classifier.
 - [ ] Position value model.
 - [ ] Hard-example miner.
 - [ ] Counterfactual dataset generator.
-- [ ] Benchmark-gated model promotion.
+- [x] Benchmark-gated model promotion.
 
 ## P3 — operations
 

@@ -34,6 +34,7 @@ The intended stack is TypeScript/Node for simulator + online policy, PostgreSQL 
 - heuristic opponent model supports normalized action/set priors and hard evidence updates
 - one-ply expected-value evaluator aggregates exact branches over opponent action beliefs
 - P2 utilities cover beam budgets, CVaR risk, behavior/calibration metrics, and team evolution primitives
+- frequency action predictor and hard benchmark promotion gate are tested
 - package boundaries/readmes for simulator, engine, agent, storage, teamlab, training, and CLI
 - roadmap, evaluation methodology, team lab design, opponent model design, and self-improvement design
 - PostgreSQL/Docker scaffolding
