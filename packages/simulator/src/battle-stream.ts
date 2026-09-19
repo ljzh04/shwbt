@@ -47,7 +47,10 @@ export class ShowdownBattle implements SimulatorBattle {
   async choices(player: PlayerId): Promise<readonly Action[]> {
     for (;;) {
       const choices = this.pendingChoices.get(player);
-      if (choices) return choices;
+      if (choices) {
+        this.pendingChoices.delete(player);
+        return choices;
+      }
       if (this.finished) return [];
       await new Promise((resolve) => setTimeout(resolve, 1));
     }

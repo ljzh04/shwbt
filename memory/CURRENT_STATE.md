@@ -67,6 +67,8 @@ The intended stack is TypeScript/Node for simulator + online policy, PostgreSQL 
 - live perspective auto-detected from the `|player|...|userid|...` line when the extension reports the logged-in username; otherwise defaults to p1
 - Firefox MV3 analysis extension (`apps/showdown-extension/`) bridges the page's own WebSocket battle log to /ingest via main-world bridge + content script + background worker
 - injectable PostgreSQL metadata repository covers battles, decisions, and dataset manifests
+- frozen simulator-backed campaign runner (`packages/training/src/campaign.ts`) drives full battles with legality-checked policy choices, side faints, max-turn aborts, and catastrophic-loss classification (`classifyCampaignOutcome`); real 6v6 OU scenario manifest `data/campaigns/frozen-ou-v1.json` and `scripts/run-campaign.ts` CLI writing versioned result artifacts
+- `BattleStream.choices()` consumes each player request once per window and `legalActionsFromRequest` handles `forceSwitch` and `wait` windows, fixing mid-turn request-window desyncs (regression-tested with real OU teams)
 - package boundaries/readmes for simulator, engine, agent, storage, teamlab, training, and CLI
 - roadmap, evaluation methodology, team lab design, opponent model design, and self-improvement design
 - PostgreSQL/Docker scaffolding
@@ -78,7 +80,7 @@ The intended stack is TypeScript/Node for simulator + online policy, PostgreSQL 
 - production PostgreSQL wiring and migrations beyond the injectable repository boundary
 - pending decision finalization is exposed, but self-play policy telemetry does not yet call it automatically
 - learning/team-lab utilities are deterministic baselines, not trained models or evolutionary runs
-- benchmark runner is a metric harness, not yet a full simulator-backed frozen campaign
+- frozen campaign runner exists for baseline-v1; candidate policy injection beyond `baseline-v1` and ops scheduling of campaigns remain unimplemented
 - live extension bridge is syntax-checked only, not verified against the live Showdown client; username scraper reads `#userbar .username`
 
 ## Current target

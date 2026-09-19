@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { ShowdownBattle } from '../packages/simulator/src/battle-stream.js';
 import { DecisionSink } from '../packages/storage/src/decision-sink.js';
 import { RawEventWriter } from '../packages/storage/src/raw-event-writer.js';
+import type { Action } from '../packages/engine/src/types.js';
 
 function option(name: string, fallback: string): string {
   const index = process.argv.indexOf(name);
@@ -45,20 +46,26 @@ async function main(): Promise<void> {
   await battle.start({ formatId: 'gen9customgame', p1Name: 'selfplay-p1', p2Name: 'selfplay-p2', p1Team, p2Team, seed: 1337 });
   for (let turn = 0; turn < 100 && !battle.isFinished(); turn += 1) {
     const [p1, p2] = await Promise.all([battle.choices('p1'), battle.choices('p2')]);
-    if (p1.length === 0 || p2.length === 0) break;
+    if (p1.length === 0 && p2.length === 0) {
+      await battle.flush();
+      continue;
+    }
     await battle.flush();
-    const actions = { p1: p1[0]!, p2: p2[0]! };
+    const actions = { p1: p1[0], p2: p2[0] };
     for (const player of ['p1', 'p2'] as const) {
       const decision = pending.get(player);
-      if (decision) {
-        await decisionSink.finalize(decision, actions[player], { selected_at_turn: battle.snapshot().turn }, {
+      if (decision && actions[player]) {
+        await decisionSink.finalize(decision, actions[player] as Action, { selected_at_turn: battle.snapshot().turn }, {
           winProgress: 0, opponentPPDepletion: 0, forcedSwitchValue: 0, statusPressure: 0, hazardPressure: 0,
           informationGain: 0, structuralIntegrity: 0, decisionBurden: 0, catastrophicRisk: 0, irreversibleResourceLoss: 0,
         });
         pending.delete(player);
       }
     }
-    await Promise.all([battle.choose('p1', actions.p1), battle.choose('p2', actions.p2)]);
+    await Promise.all([
+      p1.length > 0 ? battle.choose('p1', actions.p1!) : Promise.resolve(),
+      p2.length > 0 ? battle.choose('p2', actions.p2!) : Promise.resolve(),
+    ]);
   }
   await battle.flush();
   console.log(`self-play battle written: ${runId} events ${sequence}`);

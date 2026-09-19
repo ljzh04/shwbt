@@ -88,6 +88,8 @@ Priority order is intentionally coarse. Pick one vertical slice at a time.
 - [x] Run frozen benchmark harness against baseline and candidate policies.
 - [x] Verify Docker collector image end to end.
 - [x] Serve live analysis snapshots over HTTP and wire Firefox MV3 extension bridge (page WebSocket → /ingest → NDJSON → panel). Perspective detection on the live side remains default-p1 pending live verification.
+- [x] Frozen simulator-backed benchmark campaign runner: versioned OU scenario manifest, legality-checked choices, faint/abort/win outcomes, catastrophic classification, CLI artifact writer. Includes request-window consume-on-read fix (`BattleStream.choices`) and `forceSwitch`/`wait` legal-action handling regression-tested on real 6v6 OU teams.
+- [ ] Point ops benchmark scheduling at campaigns and register candidate policies beyond `baseline-v1` for promotion runs.
 
 ## Known implementation ceilings
 

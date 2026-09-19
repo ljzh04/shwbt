@@ -68,4 +68,15 @@ assert.deepEqual(actions, [
   { kind: 'switch', id: 'p1: Chansey', target: 2 },
 ]);
 
+const forceSwitchRequest = JSON.stringify({
+  forceSwitch: [{ active: true, slot: 0, pokemon: 'p2a: Dragapult' }],
+  side: { pokemon: [
+    { ident: 'p2: Dragapult', active: true, condition: '0 fnt' },
+    { ident: 'p2: Dodrio', active: false, condition: '204/204' },
+  ] },
+});
+const forceActions = legalActionsFromRequest(`${separator}request${separator}${forceSwitchRequest}`);
+assert.deepEqual(forceActions, [{ kind: 'switch', id: 'p2: Dodrio', target: 2 }]);
+assert.deepEqual(legalActionsFromRequest(`${separator}request${separator}${JSON.stringify({ wait: true })}`), []);
+
 console.log('simulator tests ok');

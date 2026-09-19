@@ -2,6 +2,7 @@ import type { Action } from '../../engine/src/types.js';
 
 interface ChoiceRequest {
   readonly teamPreview?: boolean;
+  readonly forceSwitch?: readonly unknown[];
   readonly active?: readonly ActiveRequest[];
   readonly side?: {
     readonly pokemon?: readonly PokemonRequest[];
@@ -42,6 +43,7 @@ export function legalActionsFromRequest(message: string): readonly Action[] {
   const active = request?.active?.[0];
   const roster = request?.side?.pokemon ?? [];
   if (!active) {
+    if (request?.forceSwitch?.length) return switchActions(roster);
     if (!request?.teamPreview) return [];
     return permutations(roster
       .map((entry, index) => (!entry.fainted && entry.condition !== '0 fnt' ? index + 1 : null))
@@ -55,11 +57,7 @@ export function legalActionsFromRequest(message: string): readonly Action[] {
     );
 
   if (!active.trapped && !active.maybeTrapped) {
-    for (const [index, pokemon] of roster.entries()) {
-      if (!pokemon.active && !pokemon.fainted && pokemon.condition !== '0 fnt') {
-        actions.push({ kind: 'switch', id: pokemon.ident ?? String(index + 1), target: index + 1 });
-      }
-    }
+    actions.push(...switchActions(roster));
   }
 
   if (active.canTerastallize) {
@@ -67,6 +65,14 @@ export function legalActionsFromRequest(message: string): readonly Action[] {
   }
 
   return actions;
+}
+
+function switchActions(roster: readonly PokemonRequest[]): Action[] {
+  return roster.flatMap((pokemon, index) =>
+    !pokemon.active && !pokemon.fainted && pokemon.condition !== '0 fnt'
+      ? [{ kind: 'switch', id: pokemon.ident ?? String(index + 1), target: index + 1 }]
+      : [],
+  );
 }
 
 function permutations(values: readonly number[]): number[][] {
