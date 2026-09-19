@@ -1,10 +1,11 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { evaluateCampaignGate, defaultPolicyRegistry, type PolicyFactory } from '../../packages/training/src/campaign-gate.js';
-import type { FrozenCampaign } from '../../packages/training/src/campaign.js';
+import type { CampaignResult, FrozenCampaign } from '../../packages/training/src/campaign.js';
+import type { PromotionGateInput, PromotionThresholds } from '../../packages/training/src/promotion.js';
 import { DeterministicBaseline } from '../../packages/agent/src/baseline.js';
 
-function option(name: string, fallback: string): string {
+export function option(name: string, fallback: string): string {
   const index = process.argv.indexOf(name);
   return index >= 0 ? process.argv[index + 1] ?? fallback : fallback;
 }
@@ -25,7 +26,7 @@ interface CampaignManifest {
   readonly scenarios: readonly ScenarioManifest[];
 }
 
-async function resolveCampaign(path: string): Promise<FrozenCampaign> {
+export async function resolveCampaign(path: string): Promise<FrozenCampaign> {
   const manifest = JSON.parse(await readFile(resolve(path), 'utf8')) as CampaignManifest;
   return {
     version: manifest.version,
@@ -42,17 +43,33 @@ async function resolveCampaign(path: string): Promise<FrozenCampaign> {
   };
 }
 
-async function main(): Promise<void> {
-  const campaignPath = resolve(option('--campaign', 'data/campaigns/frozen-ou-v1.json'));
-  const outPath = option('--out', '');
-  const candidateId = option('--candidate', 'baseline-v1');
-  const campaign = await resolveCampaign(campaignPath);
+export type EvaluationArtifact = {
+  generatedAt: string;
+  simulatorCommit: string;
+  campaignVersion: string;
+  candidateId: string;
+  controlId: string;
+  candidate: CampaignResult;
+  control: CampaignResult;
+  promotion: {
+    passed: boolean;
+    thresholds: PromotionThresholds;
+    input: PromotionGateInput;
+  };
+};
+
+export async function evaluateCandidateArtifact(input: {
+  campaignPath: string;
+  candidateId: string;
+  outPath?: string | undefined;
+}): Promise<{ artifact: EvaluationArtifact; decision: string }> {
+  const campaign = await resolveCampaign(input.campaignPath);
   const registered: Readonly<Record<string, PolicyFactory>> = {
     ...defaultPolicyRegistry(),
     'test-candidate': () => new DeterministicBaseline(),
   };
-  const evaluation = await evaluateCampaignGate({ campaign, candidateId, controlId: campaign.referencePolicyId, policies: registered });
-  const artifact = {
+  const evaluation = await evaluateCampaignGate({ campaign, candidateId: input.candidateId, controlId: campaign.referencePolicyId, policies: registered });
+  const artifact: EvaluationArtifact = {
     generatedAt: new Date().toISOString(),
     simulatorCommit: campaign.simulatorCommit,
     campaignVersion: campaign.version,
@@ -60,19 +77,24 @@ async function main(): Promise<void> {
     controlId: evaluation.controlId,
     candidate: evaluation.candidate,
     control: evaluation.control,
-    promotion: {
-      passed: evaluation.passed,
-      thresholds: evaluation.thresholds,
-      input: evaluation.input,
-    },
+    promotion: { passed: evaluation.passed, thresholds: evaluation.thresholds, input: evaluation.input },
   };
-  if (outPath) {
-    const target = resolve(outPath);
+  if (input.outPath) {
+    const target = resolve(input.outPath);
     await mkdir(dirname(target), { recursive: true });
     await writeFile(target, `${JSON.stringify(artifact, null, 2)}\n`, 'utf8');
   }
-  const decision = evaluation.passed ? 'PROMOTE' : 'KEEP';
-  console.log(`${decision} ${evaluation.candidateId}: winRate ${artifact.promotion.input.candidateMetric.toFixed(3)} vs control ${artifact.promotion.input.controlMetric.toFixed(3)} (threshold ${evaluation.thresholds.minimumMetricDelta}); catastrophic ${artifact.promotion.input.candidateCatastrophicLossRate.toFixed(3)} vs ${artifact.promotion.input.controlCatastrophicLossRate.toFixed(3)}`);
+  return { artifact, decision: evaluation.passed ? 'PROMOTE' : 'KEEP' };
 }
 
-void main();
+async function main(): Promise<void> {
+  const campaignPath = option('--campaign', 'data/campaigns/frozen-ou-v1.json');
+  const outPath = option('--out', '');
+  const candidateId = option('--candidate', 'baseline-v1');
+  const { decision, artifact } = await evaluateCandidateArtifact({ campaignPath, candidateId, outPath });
+  console.log(`${decision} ${artifact.candidateId}: winRate ${artifact.promotion.input.candidateMetric.toFixed(3)} vs control ${artifact.promotion.input.controlMetric.toFixed(3)} (threshold ${artifact.promotion.thresholds.minimumMetricDelta}); catastrophic ${artifact.promotion.input.candidateCatastrophicLossRate.toFixed(3)} vs ${artifact.promotion.input.controlCatastrophicLossRate.toFixed(3)}`);
+}
+
+if (require.main === module) {
+  void main();
+}

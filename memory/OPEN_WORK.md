@@ -90,7 +90,8 @@ Priority order is intentionally coarse. Pick one vertical slice at a time.
 - [x] Serve live analysis snapshots over HTTP and wire Firefox MV3 extension bridge (page WebSocket → /ingest → NDJSON → panel). Perspective detection on the live side remains default-p1 pending live verification.
 - [x] Frozen simulator-backed benchmark campaign runner: versioned OU scenario manifest, legality-checked choices, faint/abort/win outcomes, catastrophic classification, CLI artifact writer. Includes request-window consume-on-read fix (`BattleStream.choices`) and `forceSwitch`/`wait` legal-action handling regression-tested on real 6v6 OU teams.
 - [x] Campaign promotion gate: candidate vs registered control on the same frozen campaign, win-rate/catastrophic → hard promotion gate, PROMOTE/KEEP artifact writer (`scripts/ops/evaluate-candidate.ts`), policy registry as registration point.
-- [ ] Wire ops benchmark scheduling to the campaign gate (extend `scripts/ops/schedule.ts`) and produce a real non-baseline candidate policy for a promotion run.
+- [x] Ops evaluation scheduler (`scripts/ops/scheduled-evaluation.ts`): `benchmarkDue` + persisted evaluation state, SKIP when not due, versioned artifact + state update when due.
+- [ ] Produce a real non-baseline candidate policy (measured behavior change) and run it through the scheduled frozen-campaign gate.
 
 ## Known implementation ceilings
 
