@@ -50,6 +50,7 @@ The intended stack is TypeScript/Node for simulator + online policy, PostgreSQL 
 - repeated fixed-seed multi-turn self-play state hashes are regression-tested
 - collector image builds cleanly with pinned Showdown and passes container heartbeat smoke
 - deterministic frozen benchmark runner reports accuracy and catastrophic-loss rate
+- live analysis snapshot builder exposes turn-synced PredictionSnapshot from canonical state
 - injectable PostgreSQL metadata repository covers battles, decisions, and dataset manifests
 - package boundaries/readmes for simulator, engine, agent, storage, teamlab, training, and CLI
 - roadmap, evaluation methodology, team lab design, opponent model design, and self-improvement design
