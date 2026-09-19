@@ -1,4 +1,4 @@
-import type { Action, BattleState, PlayerId } from '../../engine/src/types.js';
+import type { Action, BattleResult, BattleState, PlayerId } from '../../engine/src/types.js';
 
 export interface BattleConfig {
   readonly formatId: string;
@@ -9,10 +9,7 @@ export interface BattleConfig {
   readonly seed?: number;
 }
 
-export interface BattleResult {
-  readonly winner: PlayerId | null;
-  readonly reason: string | null;
-}
+export type { BattleResult };
 
 export interface SimulatorBattle {
   start(config: BattleConfig): Promise<void>;

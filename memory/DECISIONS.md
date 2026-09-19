@@ -80,3 +80,11 @@ Candidate iterations for later builds:
 **Prerequisites before any of it:** exact branch/restore cheaper than command replay, full protocol coverage, frozen benchmark campaign, dataset scale beyond self-play baselines.
 
 **Reason:** search depth and learned models amplify state/reward errors; foundation must be concrete first.
+
+## D010 — Firefox MV3 extension target, Gen 9 OU focus
+
+**Status:** accepted
+
+The browser target is Firefox MV3. The competitive focus is Generation 9 OU (`target_format: OU`, `generation: 9`).
+
+**Reason:** single browser target keeps the bridge thin; format pin unblocks reproducible experiments.

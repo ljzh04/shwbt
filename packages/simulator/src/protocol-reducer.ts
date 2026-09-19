@@ -63,12 +63,24 @@ function pokemonFromMessage(slot: string, name: string, hpText?: string): Pokemo
 export class BattleProtocolReducer implements ProtocolReducer {
   private state = emptyState();
 
+  // ponytail: player display names map to sides for |win|; empty map keeps winner null but records reason.
+  constructor(private readonly names: Readonly<Record<string, PlayerId>> = {}) {}
+
   consume(message: string): void {
     const parts = message.trim().split('|');
     const event = parts[1];
     if (!event) return;
 
     switch (event) {
+      case 'win':
+        this.state = {
+          ...this.state,
+          result: { winner: this.names[parts[2] ?? ''] ?? null, reason: `win:${parts[2] ?? 'unknown'}` },
+        };
+        break;
+      case 'tie':
+        this.state = { ...this.state, result: { winner: null, reason: 'tie' } };
+        break;
       case 'turn':
         this.state = { ...this.state, turn: Number(parts[2] ?? 0) };
         break;

@@ -56,6 +56,7 @@ The intended stack is TypeScript/Node for simulator + online policy, PostgreSQL 
 - DecisionSink feeds newly revealed opponent moves into the heuristic opponent model behind snapshot beliefs
 - pending snapshots carry deterministic baseline candidate scores (injectable policy, silent fallback to unscored)
 - reducer tracks entry hazards (-sidestart/-sideend) and healing (-heal); screens and other side conditions stay untracked
+- canonical BattleState carries optional battle result; reducer records win/tie, panel shows ended state
 - local analysis server serves latest/turn-pinned snapshots over HTTP from decision NDJSON (`scripts/serve-analysis.ts`)
 - zero-dependency static panel (`apps/showdown-panel/panel.html`) served at `/`, polls snapshots with KNOWN/INFERRED labels
 - `/timeline` endpoint plus panel timeline view shows per-turn top candidate, newly revealed opponent moves, and top belief

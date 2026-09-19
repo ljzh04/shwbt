@@ -55,6 +55,12 @@ export interface BattleState {
   readonly field: FieldState;
   readonly choices: readonly Action[];
   readonly beliefs: OpponentBeliefState;
+  readonly result?: BattleResult;
+}
+
+export interface BattleResult {
+  readonly winner: PlayerId | null;
+  readonly reason: string | null;
 }
 
 export interface EvaluationVector {

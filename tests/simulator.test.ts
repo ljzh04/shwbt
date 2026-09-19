@@ -38,6 +38,14 @@ reducer.consume(`${separator}-sidestart${separator}p2: Gholdengo${separator}Refl
 assert.deepEqual(reducer.snapshot().sides.p2.hazards, { stealthrock: 1, spikes: 1 });
 reducer.consume(`${separator}-sideend${separator}p2${separator}Spikes`);
 assert.deepEqual(reducer.snapshot().sides.p2.hazards, { stealthrock: 1 });
+assert.equal(reducer.snapshot().result, undefined);
+reducer.consume(`${separator}win${separator}Stranger`);
+assert.deepEqual(reducer.snapshot().result, { winner: null, reason: 'win:Stranger' });
+const named = new BattleProtocolReducer({ Alice: 'p1', Bob: 'p2' });
+named.consume(`${separator}win${separator}Bob`);
+assert.deepEqual(named.snapshot().result, { winner: 'p2', reason: 'win:Bob' });
+named.consume(`${separator}tie`);
+assert.deepEqual(named.snapshot().result, { winner: null, reason: 'tie' });
 
 const request = JSON.stringify({
   active: [{ moves: [{ id: 'recover', disabled: false }, { id: 'toxic', disabled: true }] }],

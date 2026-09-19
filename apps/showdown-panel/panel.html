@@ -35,7 +35,7 @@ async function tick(){
  catch(e){document.getElementById('status').textContent='Analysis engine unavailable. Battle state unknown.';return;}
  if(s.stateHash===lastHash)return;lastHash=s.stateHash;
  document.getElementById('panel').hidden=false;
- document.getElementById('status').textContent=`battle ${s.battleId}`;
+ document.getElementById('status').textContent=s.result?`Battle over: ${s.result.reason}`:`battle ${s.battleId}`;
  document.getElementById('turn').textContent=`Turn ${s.turn} · ${s.stateHash.slice(0,8)}`;
  document.getElementById('ours').innerHTML=mon(s.active.ours);
  document.getElementById('foe').innerHTML=mon(s.active.opponent);

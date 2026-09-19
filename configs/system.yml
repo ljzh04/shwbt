@@ -1,7 +1,7 @@
 project:
   name: pokemon-stall-ai
-  target_format: "SET_ME_EXPLICITLY"
-  generation: "SET_ME_EXPLICITLY"
+  target_format: "OU"
+  generation: "9"
 
 simulator:
   repository: "https://github.com/smogon/pokemon-showdown"
