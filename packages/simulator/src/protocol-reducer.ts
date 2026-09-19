@@ -83,6 +83,7 @@ export class BattleProtocolReducer implements ProtocolReducer {
         this.updateStatus(parts[2], parts[3]);
         break;
       case '-damage':
+      case '-heal':
         this.updateHp(parts[2], parts[3]);
         break;
       case 'faint':
@@ -94,6 +95,12 @@ export class BattleProtocolReducer implements ProtocolReducer {
         break;
       case '-terrain':
         this.updateField('terrain', parts[2]);
+        break;
+      case '-sidestart':
+        this.updateHazard(parts[2], parts[3], 1);
+        break;
+      case '-sideend':
+        this.updateHazard(parts[2], parts[3], -1);
         break;
     }
   }
@@ -157,6 +164,21 @@ export class BattleProtocolReducer implements ProtocolReducer {
   private updateField(field: 'weather' | 'terrain', value: string | undefined): void {
     const next: FieldState = { ...this.state.field, [field]: value ?? null };
     this.state = { ...this.state, field: next };
+  }
+
+  // ponytail: entry hazards only; screens/mist/safeguard stay untracked until a consumer needs them.
+  private updateHazard(reference: string | undefined, name: string | undefined, delta: number): void {
+    const player = playerOf(reference ?? '');
+    const key = (name ?? '').toLowerCase().replace(/[^a-z]/g, '');
+    if (!player || !['stealthrock', 'spikes', 'toxicspikes', 'stickyweb'].includes(key)) return;
+    const hazards = { ...this.state.sides[player].hazards };
+    const layers = (hazards[key] ?? 0) + delta;
+    if (layers <= 0) delete hazards[key];
+    else hazards[key] = layers;
+    this.state = {
+      ...this.state,
+      sides: { ...this.state.sides, [player]: { ...this.state.sides[player], hazards } },
+    };
   }
 
   private findPokemon(player: PlayerId, slot: string): PokemonState | undefined {

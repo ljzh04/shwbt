@@ -30,6 +30,14 @@ reducer.consume(`${separator}-damage${separator}p1a: Toxapex${separator}50/100`)
 assert.equal(reducer.snapshot().turn, 3);
 assert.equal(reducer.snapshot().active.p1?.hp, 50);
 assert.deepEqual(reducer.snapshot().active.p1?.revealedMoves, ['Recover']);
+reducer.consume(`${separator}-heal${separator}p1a: Toxapex${separator}80/100`);
+assert.equal(reducer.snapshot().active.p1?.hp, 80);
+reducer.consume(`${separator}-sidestart${separator}p2: Gholdengo${separator}Stealth Rock`);
+reducer.consume(`${separator}-sidestart${separator}p2: Gholdengo${separator}Spikes`);
+reducer.consume(`${separator}-sidestart${separator}p2: Gholdengo${separator}Reflect`);
+assert.deepEqual(reducer.snapshot().sides.p2.hazards, { stealthrock: 1, spikes: 1 });
+reducer.consume(`${separator}-sideend${separator}p2${separator}Spikes`);
+assert.deepEqual(reducer.snapshot().sides.p2.hazards, { stealthrock: 1 });
 
 const request = JSON.stringify({
   active: [{ moves: [{ id: 'recover', disabled: false }, { id: 'toxic', disabled: true }] }],
