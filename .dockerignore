@@ -1,0 +1,7 @@
+node_modules
+vendor
+data/raw
+data/derived
+.git
+.serena
+docs/StallMind_GUI_AGENT_HANDOFF.md

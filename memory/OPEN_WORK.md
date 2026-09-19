@@ -86,7 +86,7 @@ Priority order is intentionally coarse. Pick one vertical slice at a time.
 - [x] Replace in-memory deduplication with restart-safe content-hash indexing.
 - [x] Add PostgreSQL repository for battles, decisions, and dataset manifests.
 - [x] Run frozen benchmark harness against baseline and candidate policies.
-- [ ] Verify Docker collector image end to end (Docker daemon unavailable in current environment).
+- [x] Verify Docker collector image end to end.
 
 ## Known implementation ceilings
 
