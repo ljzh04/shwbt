@@ -82,7 +82,7 @@ Priority order is intentionally coarse. Pick one vertical slice at a time.
 - [x] Validate emitted event and decision records against JSON schemas.
 - [x] Make collector raw/decision paths configurable instead of hard-coded.
 - [ ] Add deterministic multi-turn self-play fixture with repeated state-hash comparison.
-- [ ] Add replay ingestion from saved protocol NDJSON.
+- [x] Add replay ingestion from saved protocol NDJSON.
 - [ ] Replace in-memory deduplication with restart-safe content-hash indexing.
 - [ ] Add PostgreSQL repository for battles, decisions, and dataset manifests.
 - [ ] Run frozen benchmark harness against baseline and candidate policies.
