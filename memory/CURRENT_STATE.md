@@ -44,6 +44,7 @@ The intended stack is TypeScript/Node for simulator + online policy, PostgreSQL 
 - self-play collector writes configurable raw protocol and validated decision NDJSON outputs
 - self-play collector persists simulator outcome events through a result callback
 - event envelopes and pending decisions pass dependency-free schema-boundary validation
+- DecisionSink finalizes legal pending actions with transition and objective-delta telemetry
 - package boundaries/readmes for simulator, engine, agent, storage, teamlab, training, and CLI
 - roadmap, evaluation methodology, team lab design, opponent model design, and self-improvement design
 - PostgreSQL/Docker scaffolding
