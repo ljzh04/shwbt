@@ -15,6 +15,7 @@ async function main(): Promise<void> {
   const decisionPath = option('--decisions', 'data/derived/selfplay-decisions.ndjson');
   const writer = new RawEventWriter(rawPath);
   const decisionSink = new DecisionSink(new RawEventWriter(decisionPath));
+  const pending = new Map<string, string>();
   let sequence = 0;
   const battleId = runId;
   const battle = new ShowdownBattle('all', async (type, payload) => {
@@ -26,7 +27,8 @@ async function main(): Promise<void> {
     };
     sequence += 1;
     await writer.append(event);
-    await decisionSink.accept(event);
+    const decision = await decisionSink.accept(event);
+    if (decision) pending.set(decision.actor, decision.decision_id);
   }, async (result) => {
     await writer.append({
       schema_version: '1.0.0', event_id: randomUUID(), run_id: runId, battle_id: battleId, sequence: sequence++,
@@ -38,7 +40,19 @@ async function main(): Promise<void> {
   for (let turn = 0; turn < 100 && !battle.isFinished(); turn += 1) {
     const [p1, p2] = await Promise.all([battle.choices('p1'), battle.choices('p2')]);
     if (p1.length === 0 || p2.length === 0) break;
-    await Promise.all([battle.choose('p1', p1[0]!), battle.choose('p2', p2[0]!)]);
+    await battle.flush();
+    const actions = { p1: p1[0]!, p2: p2[0]! };
+    for (const player of ['p1', 'p2'] as const) {
+      const decision = pending.get(player);
+      if (decision) {
+        await decisionSink.finalize(decision, actions[player], { selected_at_turn: battle.snapshot().turn }, {
+          winProgress: 0, opponentPPDepletion: 0, forcedSwitchValue: 0, statusPressure: 0, hazardPressure: 0,
+          informationGain: 0, structuralIntegrity: 0, decisionBurden: 0, catastrophicRisk: 0, irreversibleResourceLoss: 0,
+        });
+        pending.delete(player);
+      }
+    }
+    await Promise.all([battle.choose('p1', actions.p1), battle.choose('p2', actions.p2)]);
   }
   await battle.flush();
   console.log(`self-play battle written: ${runId} events ${sequence}`);
