@@ -65,3 +65,18 @@ Examples: PP depletion, forced switches, status pressure, hazards, information g
 Observed outcomes and simulator-generated alternative outcomes must never be mixed without provenance.
 
 **Reason:** counterfactuals are useful but are not evidence that the opponent actually chose those actions.
+
+## D009 — Search/learning frontier stays deferred behind benchmark gate
+
+**Status:** deferred (records direction, not commitment)
+
+Candidate iterations for later builds:
+
+- **MCTS** over simulator-backed branches, guided by current belief distributions and stall objective vector.
+- **Expectiminimax** with chance nodes from opponent action beliefs and CVaR tail-risk penalties.
+- **Learned value/policy nets** (position value, action predictor) trained on versioned datasets, promoted only via frozen benchmark (D002/D004).
+- **Prediction calibration loop** feeding prediction-vs-actual timeline back into opponent model priors.
+
+**Prerequisites before any of it:** exact branch/restore cheaper than command replay, full protocol coverage, frozen benchmark campaign, dataset scale beyond self-play baselines.
+
+**Reason:** search depth and learned models amplify state/reward errors; foundation must be concrete first.
