@@ -1,0 +1,6 @@
+{
+  "name": "@pokemon-stall-ai/training",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module"
+}

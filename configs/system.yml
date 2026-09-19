@@ -1,0 +1,64 @@
+project:
+  name: pokemon-stall-ai
+  target_format: "SET_ME_EXPLICITLY"
+  generation: "SET_ME_EXPLICITLY"
+
+simulator:
+  repository: "https://github.com/smogon/pokemon-showdown"
+  commit: "2ddfa0476f8207e12e204b1c69f7c7683b17633c"
+  mode: local
+  seed: 1337
+
+runtime:
+  decision_timeout_ms: 500
+  max_search_depth: 4
+  beam_width: 8
+  opponent_branch_width: 6
+  candidate_action_limit: 24
+
+belief:
+  min_probability: 0.001
+  top_set_hypotheses: 24
+  top_action_hypotheses: 12
+
+team_lab:
+  population_size: 128
+  elites: 16
+  mutation_rate: 0.18
+  crossover_rate: 0.45
+  generations: 100
+  evaluation_battles_per_team: 64
+
+storage:
+  postgres_url: "postgres://stallai:stallai@localhost:5432/stallai"
+  parquet_root: "data/derived"
+  raw_root: "data/raw"
+
+reproducibility:
+  record_seed: true
+  record_git_sha: true
+  record_simulator_commit: true
+  record_objective_hash: true
+
+
+collector:
+  enabled: false
+  mode: selfplay
+  worker_count: 1
+  flush_every_battles: 64
+  heartbeat_seconds: 30
+  raw_rotation_mb: 256
+  checkpoint_every_battles: 16
+  max_retries_per_battle: 2
+  quarantine_invalid: true
+  auto_train: false
+  auto_promote: false
+  live_transport: false
+
+data_policy:
+  raw_retention_days: 90
+  normalized_retention_days: 180
+  anonymize_actor_ids: true
+  require_provenance: true
+  freeze_holdout: true
+  reject_hidden_info_leakage: true

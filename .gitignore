@@ -1,0 +1,35 @@
+node_modules/
+vendor/
+.env
+.env.*
+*.log
+coverage/
+.dist/
+dist/
+__pycache__/
+*.pyc
+.DS_Store
+
+# Generated research data
+data/raw/*
+data/replays/*
+data/derived/*
+!data/raw/.gitkeep
+!data/replays/.gitkeep
+!data/derived/.gitkeep
+
+# Local DB dumps
+*.sql
+*.sqlite
+
+# Generated local datasets / collector state
+/data/raw/**
+/data/normalized/**
+/data/experience/**
+/data/manifests/**
+/data/holdout/**
+/data/quarantine/**
+/data/checkpoints/**
+*.parquet
+*.ndjson
+*.ndjson.zst

@@ -1,0 +1,49 @@
+objectives:
+  stall_default:
+    description: "Long-horizon stall with meaningful game control"
+    weights:
+      win_progress: 0.35
+      opponent_pp_depletion: 0.20
+      forced_switch_value: 0.10
+      status_pressure: 0.10
+      hazard_pressure: 0.08
+      information_gain: 0.05
+      structural_integrity: 0.10
+      decision_burden: 0.02
+    risk:
+      catastrophic_loss: 0.50
+      irreversible_resource_loss: 0.25
+
+  annoyance:
+    description: "Prefer resource denial and prolonged difficult positions while retaining viability"
+    weights:
+      win_progress: 0.20
+      opponent_pp_depletion: 0.25
+      forced_switch_value: 0.12
+      status_pressure: 0.10
+      hazard_pressure: 0.10
+      information_gain: 0.05
+      structural_integrity: 0.08
+      decision_burden: 0.10
+    risk:
+      catastrophic_loss: 0.45
+      irreversible_resource_loss: 0.30
+
+  pure_control_research:
+    description: "Experimental objective; not intended as a ladder optimization target"
+    weights:
+      win_progress: 0.05
+      opponent_pp_depletion: 0.30
+      forced_switch_value: 0.15
+      status_pressure: 0.10
+      hazard_pressure: 0.10
+      information_gain: 0.10
+      structural_integrity: 0.10
+      decision_burden: 0.10
+    risk:
+      catastrophic_loss: 0.70
+      irreversible_resource_loss: 0.35
+
+# Objective configurations are data artifacts.
+# Hash the selected objective file/config when recording an experiment.
+# Do not silently change objective weights for an existing experiment.

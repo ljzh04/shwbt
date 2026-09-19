@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/pokemon-stall-ai/dataset-manifest.schema.json",
+  "title": "Pokemon Stall AI Dataset Manifest",
+  "type": "object",
+  "required": [
+    "dataset_id",
+    "dataset_version",
+    "created_at",
+    "schema_version",
+    "source_runs",
+    "feature_version",
+    "simulator_commits",
+    "objective_versions",
+    "split_policy",
+    "counts",
+    "content_hash"
+  ],
+  "properties": {
+    "dataset_id": { "type": "string", "minLength": 1 },
+    "dataset_version": { "type": "string", "minLength": 1 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "schema_version": { "type": "string" },
+    "source_runs": { "type": "array", "items": { "type": "string" } },
+    "feature_version": { "type": "string" },
+    "simulator_commits": { "type": "array", "items": { "type": "string" } },
+    "objective_versions": { "type": "array", "items": { "type": "string" } },
+    "agent_versions": { "type": "array", "items": { "type": "string" } },
+    "split_policy": {
+      "type": "object",
+      "required": ["name", "holdout_frozen", "group_key"],
+      "properties": {
+        "name": { "type": "string" },
+        "holdout_frozen": { "type": "boolean" },
+        "group_key": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "counts": {
+      "type": "object",
+      "required": ["battles", "decision_points"],
+      "properties": {
+        "battles": { "type": "integer", "minimum": 0 },
+        "decision_points": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "content_hash": { "type": "string", "minLength": 1 }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: stallai
+      POSTGRES_USER: stallai
+      POSTGRES_PASSWORD: stallai
+    ports:
+      - "5432:5432"
+    volumes:
+      - stallai_pg:/var/lib/postgresql/data
+
+volumes:
+  stallai_pg:

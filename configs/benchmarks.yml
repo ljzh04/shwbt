@@ -1,0 +1,23 @@
+benchmarks:
+  baseline_smoke:
+    battles: 100
+    pools:
+      - random_legal
+      - scripted_stall_checks
+
+  frozen_v1:
+    battles: 5000
+    splits:
+      historical_holdout: 0.25
+      unseen_team_holdout: 0.25
+      contemporary_holdout: 0.25
+      adversarial_holdout: 0.25
+    repeated_seeds: 3
+
+  prediction_v1:
+    battles: 10000
+    metrics:
+      - log_loss
+      - brier_score
+      - calibration_error
+      - top1_action_accuracy

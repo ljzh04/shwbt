@@ -1,0 +1,6 @@
+{
+  "name": "@pokemon-stall-ai/cli",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module"
+}

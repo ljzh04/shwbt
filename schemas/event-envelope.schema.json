@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://example.invalid/pokemon-stall-ai/event-envelope.schema.json",
+  "title": "Pokemon Stall AI Event Envelope",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "event_id",
+    "run_id",
+    "battle_id",
+    "sequence",
+    "timestamp",
+    "source",
+    "simulator_commit",
+    "format_id",
+    "agent_version",
+    "payload_type",
+    "payload"
+  ],
+  "properties": {
+    "schema_version": { "type": "string" },
+    "event_id": { "type": "string", "minLength": 1 },
+    "run_id": { "type": "string", "minLength": 1 },
+    "battle_id": { "type": "string", "minLength": 1 },
+    "sequence": { "type": "integer", "minimum": 0 },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "source": {
+      "type": "string",
+      "enum": ["selfplay", "historical_replay", "adversarial", "benchmark", "live"]
+    },
+    "simulator_commit": { "type": "string", "minLength": 1 },
+    "format_id": { "type": "string", "minLength": 1 },
+    "agent_version": { "type": "string", "minLength": 1 },
+    "team_hash": { "type": ["string", "null"] },
+    "payload_type": {
+      "type": "string",
+      "enum": ["protocol", "decision", "outcome", "heartbeat", "quality"]
+    },
+    "payload": { "type": "object" }
+  },
+  "additionalProperties": false
+}
