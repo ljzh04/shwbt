@@ -1,5 +1,7 @@
-import type { Action, BattleState, EvaluationVector } from '../../engine/src/types.js';
+import type { Action, BattleState, EvaluationVector, PlayerId } from '../../engine/src/types.js';
 import { buildAnalysisSnapshot } from '../../agent/src/analysis-snapshot.js';
+import type { OpponentModel } from '../../agent/src/interfaces.js';
+import { HeuristicOpponentModel } from '../../agent/src/opponent-model.js';
 import { BattleProtocolReducer } from '../../simulator/src/protocol-reducer.js';
 import { extractPendingDecision, type PendingDecisionPoint } from './decision-extractor.js';
 import { validatePendingDecision } from './quality.js';
@@ -11,7 +13,10 @@ export class DecisionSink {
   private nextSequence = 0;
   private readonly pending = new Map<string, PendingDecisionPoint>();
 
-  constructor(private readonly writer: RawEventWriter) {}
+  constructor(
+    private readonly writer: RawEventWriter,
+    private readonly opponentModel: OpponentModel = new HeuristicOpponentModel(),
+  ) {}
 
   async accept(event: RawEvent): Promise<PendingDecisionPoint | null> {
     if (validateEventEnvelope(event).length > 0) return null;
@@ -20,14 +25,30 @@ export class DecisionSink {
     this.reducers.set(event.battle_id, reducer);
     const message = event.payload.message;
     if (typeof message !== 'string') return null;
-    const payload = typeof event.payload.type === 'string' && event.payload.type === 'sideupdate'
-      ? message.split('\n').slice(1).join('\n')
-      : message;
-    for (const line of payload.split('\n')) reducer.consume(line);
     const player = typeof event.payload.type === 'string' && event.payload.type === 'sideupdate'
       ? message.split('\n')[0]
       : undefined;
     if (player !== 'p1' && player !== 'p2') return null;
+    const opponent: PlayerId = player === 'p1' ? 'p2' : 'p1';
+    // ponytail: track only newly revealed opponent moves; everything else stays model-free.
+    const knownMoves = new Map<string, Set<string>>(
+      reducer.snapshot().sides[opponent].team.map((pokemon) => [pokemon.slot, new Set(pokemon.revealedMoves)]),
+    );
+    const payload = typeof event.payload.type === 'string' && event.payload.type === 'sideupdate'
+      ? message.split('\n').slice(1).join('\n')
+      : message;
+    for (const line of payload.split('\n')) reducer.consume(line);
+    for (const pokemon of reducer.snapshot().sides[opponent].team) {
+      for (const move of pokemon.revealedMoves) {
+        if (!knownMoves.get(pokemon.slot)?.has(move)) {
+          this.opponentModel.update({
+            turn: reducer.snapshot().turn,
+            eventType: 'opponent_action',
+            payload: { slot: pokemon.slot, action: { kind: 'move', id: move } },
+          });
+        }
+      }
+    }
     const request = payload.split('\n').find((line) => line.startsWith('|request|'));
     if (!request) return null;
     const decision = extractPendingDecision({ ...event, payload: { player, message: request } }, reducer.snapshot());
@@ -45,6 +66,7 @@ export class DecisionSink {
       battleId: decision.battle_id,
       state: decision.state,
       perspective: decision.actor,
+      opponentModel: this.opponentModel,
       simulatorCommit: decision.simulator_commit,
       agentVersion: decision.agent_version,
     });

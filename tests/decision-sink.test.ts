@@ -25,6 +25,16 @@ async function main(): Promise<void> {
   assert.equal(analysis.payload.turn, decision?.turn);
   assert.equal(analysis.payload.stateHash, decision?.state_hash);
   assert.equal(analysis.payload.perspective, 'p1');
+  const reveal: RawEvent = {
+    ...event, event_id: 'event-1', sequence: 1,
+    payload: { type: 'sideupdate', message: `p1\n|switch|p2a: Gholdengo|100/100\n|move|p2a: Gholdengo|Shadow Ball\n|request|${request}` },
+  };
+  const second = await sink.accept(reveal);
+  assert.ok(second);
+  const records = (await readFile(join(root, 'decisions.ndjson'), 'utf8')).split('\n').filter(Boolean);
+  assert.equal(records.length, 4);
+  const beliefs = (JSON.parse(records[3]!) as { payload: { opponentBelief: { actions: { label: string; probability: number }[] } } }).payload.opponentBelief;
+  assert.deepEqual(beliefs.actions, [{ label: 'move:Shadow Ball', probability: 1, kind: 'INFERRED' }]);
   console.log('decision sink tests ok');
 }
 
