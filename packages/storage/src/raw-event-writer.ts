@@ -2,7 +2,7 @@ import { mkdir, appendFile } from 'node:fs/promises';
 import { dirname } from 'node:path';
 
 export type EventSource = 'selfplay' | 'historical_replay' | 'adversarial' | 'benchmark' | 'live';
-export type PayloadType = 'protocol' | 'decision' | 'outcome' | 'heartbeat' | 'quality';
+export type PayloadType = 'protocol' | 'decision' | 'analysis' | 'outcome' | 'heartbeat' | 'quality';
 
 export interface RawEvent {
   readonly schema_version: string;
@@ -21,7 +21,7 @@ export interface RawEvent {
 }
 
 const sources = new Set<EventSource>(['selfplay', 'historical_replay', 'adversarial', 'benchmark', 'live']);
-const payloadTypes = new Set<PayloadType>(['protocol', 'decision', 'outcome', 'heartbeat', 'quality']);
+const payloadTypes = new Set<PayloadType>(['protocol', 'decision', 'analysis', 'outcome', 'heartbeat', 'quality']);
 
 export class RawEventWriter {
   private nextSequence = 0;

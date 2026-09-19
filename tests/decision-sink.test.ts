@@ -17,7 +17,14 @@ async function main(): Promise<void> {
   };
   const decision = await sink.accept(event);
   assert.equal(decision?.actor, 'p1');
-  assert.equal((await readFile(join(root, 'decisions.ndjson'), 'utf8')).split('\n').filter(Boolean).length, 1);
+  const lines = (await readFile(join(root, 'decisions.ndjson'), 'utf8')).split('\n').filter(Boolean);
+  assert.equal(lines.length, 2);
+  const analysis = JSON.parse(lines[1]!) as { payload_type: string; payload: { battleId: string; turn: number; stateHash: string; perspective: string } };
+  assert.equal(analysis.payload_type, 'analysis');
+  assert.equal(analysis.payload.battleId, 'battle-1');
+  assert.equal(analysis.payload.turn, decision?.turn);
+  assert.equal(analysis.payload.stateHash, decision?.state_hash);
+  assert.equal(analysis.payload.perspective, 'p1');
   console.log('decision sink tests ok');
 }
 

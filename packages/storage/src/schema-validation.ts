@@ -7,7 +7,7 @@ export interface SchemaIssue {
 }
 
 const eventSources = new Set(['selfplay', 'historical_replay', 'adversarial', 'benchmark', 'live']);
-const payloadTypes = new Set(['protocol', 'decision', 'outcome', 'heartbeat', 'quality']);
+const payloadTypes = new Set(['protocol', 'decision', 'analysis', 'outcome', 'heartbeat', 'quality']);
 
 export function validateEventEnvelope(event: RawEvent): readonly SchemaIssue[] {
   const issues: SchemaIssue[] = [];

@@ -1,4 +1,5 @@
 import type { Action, BattleState, EvaluationVector } from '../../engine/src/types.js';
+import { buildAnalysisSnapshot } from '../../agent/src/analysis-snapshot.js';
 import { BattleProtocolReducer } from '../../simulator/src/protocol-reducer.js';
 import { extractPendingDecision, type PendingDecisionPoint } from './decision-extractor.js';
 import { validatePendingDecision } from './quality.js';
@@ -38,6 +39,21 @@ export class DecisionSink {
       sequence: this.nextSequence++,
       payload_type: 'decision',
       payload: decision as unknown as Record<string, unknown>,
+    });
+    // ponytail: pending snapshot is unscored (no invented utilities); scoring lands in finalize path later.
+    const snapshot = buildAnalysisSnapshot({
+      battleId: decision.battle_id,
+      state: decision.state,
+      perspective: decision.actor,
+      simulatorCommit: decision.simulator_commit,
+      agentVersion: decision.agent_version,
+    });
+    await this.writer.append({
+      ...event,
+      event_id: `${event.event_id}:analysis`,
+      sequence: this.nextSequence++,
+      payload_type: 'analysis',
+      payload: snapshot as unknown as Record<string, unknown>,
     });
     return decision;
   }

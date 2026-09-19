@@ -21,9 +21,10 @@ async function main(): Promise<void> {
   });
   assert.equal(finalized, true);
   assert.equal(await sink.finalize(pending.decision_id, { kind: 'move', id: 'recover' }, {}, {} as never), false);
-  const records = (await readFile(join(root, 'decisions.ndjson'), 'utf8')).trim().split('\n').map((line) => JSON.parse(line) as { payload: { chosen_action?: unknown } });
-  assert.equal(records.length, 2);
-  assert.ok(records[1]?.payload.chosen_action);
+  const records = (await readFile(join(root, 'decisions.ndjson'), 'utf8')).trim().split('\n').map((line) => JSON.parse(line) as { payload_type: string; payload: { chosen_action?: unknown } });
+  assert.equal(records.length, 3);
+  assert.equal(records[1]?.payload_type, 'analysis');
+  assert.ok(records[2]?.payload.chosen_action);
   console.log('decision finalization tests ok');
 }
 
