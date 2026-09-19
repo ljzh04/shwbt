@@ -3,6 +3,7 @@ import { BattleProtocolReducer } from '../../simulator/src/protocol-reducer.js';
 import { extractPendingDecision, type PendingDecisionPoint } from './decision-extractor.js';
 import { validatePendingDecision } from './quality.js';
 import { RawEventWriter, type RawEvent } from './raw-event-writer.js';
+import { validateEventEnvelope, validatePendingDecisionSchema } from './schema-validation.js';
 
 export class DecisionSink {
   private readonly reducers = new Map<string, BattleProtocolReducer>();
@@ -11,6 +12,7 @@ export class DecisionSink {
   constructor(private readonly writer: RawEventWriter) {}
 
   async accept(event: RawEvent): Promise<PendingDecisionPoint | null> {
+    if (validateEventEnvelope(event).length > 0) return null;
     if (event.payload_type !== 'protocol') return null;
     const reducer = this.reducers.get(event.battle_id) ?? new BattleProtocolReducer();
     this.reducers.set(event.battle_id, reducer);
@@ -27,7 +29,7 @@ export class DecisionSink {
     const request = payload.split('\n').find((line) => line.startsWith('|request|'));
     if (!request) return null;
     const decision = extractPendingDecision({ ...event, payload: { player, message: request } }, reducer.snapshot());
-    if (!decision || validatePendingDecision(decision).length > 0) return null;
+    if (!decision || validatePendingDecision(decision).length > 0 || validatePendingDecisionSchema(decision).length > 0) return null;
     await this.writer.append({
       ...event,
       event_id: `${event.event_id}:decision`,

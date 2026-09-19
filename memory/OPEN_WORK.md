@@ -79,7 +79,7 @@ Priority order is intentionally coarse. Pick one vertical slice at a time.
 - [x] Connect self-play collector to `DecisionSink` and persist validated decision records during battles.
 - [ ] Finalize pending decisions with chosen action, observed transition, and objective delta.
 - [x] Persist battle completion/outcome events and classify abnormal termination.
-- [ ] Validate emitted event and decision records against JSON schemas.
+- [x] Validate emitted event and decision records against JSON schemas.
 - [x] Make collector raw/decision paths configurable instead of hard-coded.
 - [ ] Add deterministic multi-turn self-play fixture with repeated state-hash comparison.
 - [ ] Add replay ingestion from saved protocol NDJSON.
