@@ -91,7 +91,9 @@ Priority order is intentionally coarse. Pick one vertical slice at a time.
 - [x] Frozen simulator-backed benchmark campaign runner: versioned OU scenario manifest, legality-checked choices, faint/abort/win outcomes, catastrophic classification, CLI artifact writer. Includes request-window consume-on-read fix (`BattleStream.choices`) and `forceSwitch`/`wait` legal-action handling regression-tested on real 6v6 OU teams.
 - [x] Campaign promotion gate: candidate vs registered control on the same frozen campaign, win-rate/catastrophic → hard promotion gate, PROMOTE/KEEP artifact writer (`scripts/ops/evaluate-candidate.ts`), policy registry as registration point.
 - [x] Ops evaluation scheduler (`scripts/ops/scheduled-evaluation.ts`): `benchmarkDue` + persisted evaluation state, SKIP when not due, versioned artifact + state update when due.
-- [ ] Produce a real non-baseline candidate policy (measured behavior change) and run it through the scheduled frozen-campaign gate.
+- [x] Produce a real non-baseline candidate policy (`packages/agent/src/preserving-policy.ts`, registered `preserving-stall-v1`) and run it through the frozen-campaign gate. Measured via EXP-20260919-001: byte-identical outcomes vs control on frozen-ou-v1 and frozen-ou-v2 — KEEP, zero delta. Candidate retained in the registry as a control arm, not promoted.
+- [ ] Build a discriminating campaign where a low-HP switch / finish decision can actually change the outcome: scenarios with strong forced-switch pressure, knockout differentials, or policy-side opponents with varied switch seeds so deterministic-vs-deterministic lockstep cannot mask candidate behavior changes.
+- [ ] Make `BattleStream.choices()` window handling deterministic across a broader request mix (multiple consecutive `forceSwitch` windows, turn-terminal switches, beide `wait` mechanics) and pin a raw protocol fixture that exercises each.
 
 ## Known implementation ceilings
 

@@ -1,9 +1,8 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
-import { evaluateCampaignGate, defaultPolicyRegistry, type PolicyFactory } from '../../packages/training/src/campaign-gate.js';
+import { evaluateCampaignGate, defaultPolicyRegistry } from '../../packages/training/src/campaign-gate.js';
 import type { CampaignResult, FrozenCampaign } from '../../packages/training/src/campaign.js';
 import type { PromotionGateInput, PromotionThresholds } from '../../packages/training/src/promotion.js';
-import { DeterministicBaseline } from '../../packages/agent/src/baseline.js';
 
 export function option(name: string, fallback: string): string {
   const index = process.argv.indexOf(name);
@@ -64,10 +63,7 @@ export async function evaluateCandidateArtifact(input: {
   outPath?: string | undefined;
 }): Promise<{ artifact: EvaluationArtifact; decision: string }> {
   const campaign = await resolveCampaign(input.campaignPath);
-  const registered: Readonly<Record<string, PolicyFactory>> = {
-    ...defaultPolicyRegistry(),
-    'test-candidate': () => new DeterministicBaseline(),
-  };
+  const registered = defaultPolicyRegistry();
   const evaluation = await evaluateCampaignGate({ campaign, candidateId: input.candidateId, controlId: campaign.referencePolicyId, policies: registered });
   const artifact: EvaluationArtifact = {
     generatedAt: new Date().toISOString(),

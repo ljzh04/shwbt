@@ -31,4 +31,39 @@ decision: "promote|reject|continue|inconclusive"
 
 ## Experiments
 
-No measured experiments have been recorded yet.
+### EXP-20260919-001
+
+```yaml
+id: EXP-20260919-001
+status: complete
+question: "Does a deterministic preservation heuristic (critical/low-HP switching to a healthy bench; finish-rule attacking) measurably improve win rate or reduce catastrophic losses versus baseline-v1 on frozen OU campaigns?"
+simulator_commit: "2ddfa0476f8207e12e204b1c69f7c7683b17633c"
+format_id: "gen9customgame"
+objective_config: "default stall objective vector"
+agent_version: "preserving-stall-v1"
+dataset_version: null
+seed: "1337, 4242, 909, 2024"
+budget:
+  battles: 8
+  search_nodes: 0
+results:
+  win_rate: 0.0 (frozen-ou-v1) / 0.5 (frozen-ou-v2) — identical to control in both arms
+  avg_turns: 24 on both frozen-ou-v1 scenarios; longer horizons on frozen-ou-v2
+  pp_depletion: null
+  forced_switches: null
+  catastrophic_loss_rate: 0.0 / 0.25 — identical to control
+calibration:
+  brier: null
+notes: >
+  Candidate `preserving-stall-v1` runs `chooseCandidateFrom` overrides on top of baseline-v1.
+  On frozen-ou-v1 (maxTurns 25) both arms end at max_turns@24 with one faint each side on every
+  scenario — the cap is too short to discriminate. frozen-ou-v2 (stall-vs-balance 120-turn
+  scenarios plus Meowscarada-BO-vs-stall 80-turn scenarios in both directions) resolves:
+  stall loses catastrophically to BO in the guard scenario (own 0 fainted, foe 4), wins the
+  long balance scenario (own 0, foe 6), and the BO-driven scenario ends as a BO win. Candidate
+  and control produce byte-identical scenario outcomes in both campaigns: the preservation
+  heuristic changed no decision outcome on these seeds. No measured regression, no measured gain.
+decision: "reject" # do not promote preserving-stall-v1: zero measured delta
+```
+
+Follow-up intent: a discriminating campaign needs scenarios where a low-HP switch decision actually changes the outcome (e.g., forced-switch pressure / knockout differential), or policy-side opponents with varied switch seeds so deterministic-vs-deterministic lockstep does not mask behavior changes.

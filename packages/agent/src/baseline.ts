@@ -19,6 +19,8 @@ const defaultConfig: EvaluationConfig = {
   risk: { catastrophicRisk: 0.5, irreversibleResourceLoss: 0.25 },
 };
 
+export { defaultConfig };
+
 function actionPriority(action: Action): number {
   if (action.kind === 'switch') return 30;
   if (action.kind !== 'move') return 10;

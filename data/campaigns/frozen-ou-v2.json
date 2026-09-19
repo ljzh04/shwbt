@@ -1,0 +1,39 @@
+{
+  "version": "frozen-ou-v2",
+  "simulatorCommit": "2ddfa0476f8207e12e204b1c69f7c7683b17633c",
+  "referencePolicyId": "baseline-v1",
+  "scenarios": [
+    {
+      "id": "stall-vs-balance-long-s1",
+      "seed": 1337,
+      "p1Team": "data/teams/ou-stall-whitequeen.json",
+      "p2Team": "data/teams/ou-balance-pivot.json",
+      "policySide": "p1",
+      "maxTurns": 120
+    },
+    {
+      "id": "stall-vs-balance-long-s2",
+      "seed": 4242,
+      "p1Team": "data/teams/ou-stall-whitequeen.json",
+      "p2Team": "data/teams/ou-balance-pivot.json",
+      "policySide": "p2",
+      "maxTurns": 120
+    },
+    {
+      "id": "bo-vs-stall-guard-s1",
+      "seed": 909,
+      "p1Team": "data/teams/ou-meowscarada-bo.json",
+      "p2Team": "data/teams/ou-stall-whitequeen.json",
+      "policySide": "p2",
+      "maxTurns": 80
+    },
+    {
+      "id": "bo-vs-stall-guard-s2",
+      "seed": 2024,
+      "p1Team": "data/teams/ou-meowscarada-bo.json",
+      "p2Team": "data/teams/ou-stall-whitequeen.json",
+      "policySide": "p1",
+      "maxTurns": 80
+    }
+  ]
+}

@@ -71,6 +71,9 @@ The intended stack is TypeScript/Node for simulator + online policy, PostgreSQL 
 - `BattleStream.choices()` consumes each player request once per window and `legalActionsFromRequest` handles `forceSwitch` and `wait` windows, fixing mid-turn request-window desyncs (regression-tested with real OU teams)
 - campaign promotion gate (`packages/training/src/campaign-gate.ts`) runs a candidate and the registered control through the same frozen campaign, computes win-rate/catastrophic damage as `PromotionGateInput`, and applies `passesHardPromotionGate`; `scripts/ops/evaluate-candidate.ts` writes a versioned evaluation artifact and prints a PROMOTE/KEEP decision; registry pattern (`defaultPolicyRegistry`) is the candidate-registration point
 - ops evaluation scheduler (`scripts/ops/scheduled-evaluation.ts`) wires `benchmarkDue` to the campaign gate with persisted evaluation state (`data/derived/evaluation-state.json` default), skipping when not due and writing versioned artifacts when due; `evaluate-candidate.ts` exposes a shared `evaluateCandidateArtifact` used by both the CLI and the scheduler (direct-run guarded)
+- first real non-baseline candidate policy (`packages/agent/src/preserving-policy.ts`, registered as `preserving-stall-v1`): deterministic low-HP/critical preservation switches to a healthy bench and a finish-rule override, side inferred from switch idents, baseline fallback; unit-tested and type-checked
+- `frozen-ou-v2.json` campaign added with 120-turn stall-vs-balance scenarios (both directions) and 80-turn Meowscarada-BO-vs-stall guard scenarios to discriminate beyond the 24-turn cap
+- measured campaign gate run: `preserving-stall-v1` vs `baseline-v1` produced byte-identical scenario outcomes on both frozen campaigns (EXP-20260919-001, KEEP/equal, zero measured delta)
 - package boundaries/readmes for simulator, engine, agent, storage, teamlab, training, and CLI
 - roadmap, evaluation methodology, team lab design, opponent model design, and self-improvement design
 - PostgreSQL/Docker scaffolding
@@ -82,7 +85,7 @@ The intended stack is TypeScript/Node for simulator + online policy, PostgreSQL 
 - production PostgreSQL wiring and migrations beyond the injectable repository boundary
 - pending decision finalization is exposed, but self-play policy telemetry does not yet call it automatically
 - learning/team-lab utilities are deterministic baselines, not trained models or evolutionary runs
-- promotion/scheduler pipeline is wired for `baseline-v1`; no real non-baseline candidate policy exists yet to produce a promotion decision with a non-trivial outcome
+- promotion/scheduler pipeline is wired for `baseline-v1`; the first real candidate (`preserving-stall-v1`) measured zero delta on the frozen OU campaigns (EXP-20260919-001, KEEP), so the gate has not yet produced a PROMOTE decision; discriminating scenarios need forced-switch/knockout pressure or varied opponent switch seeds
 - live extension bridge is syntax-checked only, not verified against the live Showdown client; username scraper reads `#userbar .username`
 
 ## Current target

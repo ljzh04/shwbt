@@ -1,5 +1,6 @@
 import type { SearchPolicy } from '../../agent/src/interfaces.js';
 import { DeterministicBaseline } from '../../agent/src/baseline.js';
+import { PreservingPolicy } from '../../agent/src/preserving-policy.js';
 import { runCampaign, type CampaignResult, type FrozenCampaign } from './campaign.js';
 import { passesHardPromotionGate, type PromotionGateInput, type PromotionThresholds } from './promotion.js';
 
@@ -12,7 +13,10 @@ const DEFAULT_THRESHOLDS: PromotionThresholds = {
 };
 
 export function defaultPolicyRegistry(): Readonly<Record<string, PolicyFactory>> {
-  return { 'baseline-v1': () => new DeterministicBaseline() };
+  return {
+    'baseline-v1': () => new DeterministicBaseline(),
+    'preserving-stall-v1': () => new PreservingPolicy(),
+  };
 }
 
 export function campaignMetric(result: CampaignResult): number {
