@@ -54,6 +54,18 @@ async function handle(request: IncomingMessage, response: ServerResponse, load: 
     json(response, 200, selected);
     return;
   }
+  if (url.pathname === '/timeline') {
+    const battleId = url.searchParams.get('battleId');
+    if (!battleId) {
+      json(response, 400, { error: 'battleId query parameter required' });
+      return;
+    }
+    const matches = (await load())
+      .filter((snapshot) => snapshot.battleId === battleId)
+      .sort((left, right) => left.turn - right.turn);
+    json(response, 200, { battleId, turns: matches.map((snapshot) => snapshot.turn), snapshots: matches });
+    return;
+  }
   json(response, 404, { error: 'not found' });
 }
 

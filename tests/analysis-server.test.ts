@@ -19,6 +19,11 @@ async function main(): Promise<void> {
     payload: { type: 'sideupdate', message: `p1\n|turn|3\n|request|${request}` },
   };
   assert.ok(await sink.accept(event));
+  const turn4: RawEvent = {
+    ...event, event_id: 'event-1', sequence: 1,
+    payload: { type: 'sideupdate', message: `p1\n|turn|4\n|request|${request}` },
+  };
+  assert.ok(await sink.accept(turn4));
 
   const stored = await readAnalysisSnapshots(join(root, 'missing.ndjson'));
   assert.deepEqual(stored, []);
@@ -36,12 +41,18 @@ async function main(): Promise<void> {
     const latest = await fetch(`http://localhost:${port}/snapshot?battleId=battle-1`);
     assert.equal(latest.status, 200);
     const body = await latest.json() as { turn: number; battleId: string; stateHash: string };
-    assert.equal(body.turn, 3);
+    assert.equal(body.turn, 4);
     assert.equal(body.battleId, 'battle-1');
     const missing = await fetch(`http://localhost:${port}/snapshot?battleId=nope`);
     assert.equal(missing.status, 404);
     const bad = await fetch(`http://localhost:${port}/snapshot`);
     assert.equal(bad.status, 400);
+    const timeline = await fetch(`http://localhost:${port}/timeline?battleId=battle-1`);
+    assert.equal(timeline.status, 200);
+    const history = await timeline.json() as { battleId: string; turns: number[]; snapshots: { turn: number }[] };
+    assert.equal(history.battleId, 'battle-1');
+    assert.deepEqual(history.turns, [3, 4]);
+    assert.equal(history.snapshots.length, 2);
   } finally {
     await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
   }

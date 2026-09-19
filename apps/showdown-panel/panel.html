@@ -13,6 +13,7 @@ table{border-collapse:collapse;width:100%}.bar{height:8px;background:#eee}.bar>i
 </head>
 <body>
 <h2>STALLMIND <span id="turn"></span></h2>
+<div><small><a id="liveLink" href="#">live</a> · <a id="tlLink" href="#">timeline</a></small></div>
 <div id="status">Waiting for battleId…</div>
 <div id="panel" hidden>
 <h3>Us <span class="tag">KNOWN</span></h3><div id="ours"></div>
@@ -44,6 +45,19 @@ async function tick(){
  document.getElementById('prov').textContent=`sim ${s.provenance.simulatorCommit.slice(0,8)} · agent ${s.provenance.agentVersion}`;
 }
 setInterval(tick,2000);tick();
+async function timeline(){
+ const el=document.getElementById('panel');el.hidden=false;
+ document.getElementById('liveLink').href=`?battleId=${encodeURIComponent(battleId)}`;
+ try{const r=await fetch(`/timeline?battleId=${encodeURIComponent(battleId)}`);if(!r.ok){document.getElementById('status').textContent=`No timeline (http ${r.status}).`;return;}
+ const t=await r.json();document.getElementById('status').textContent=`battle ${t.battleId} · ${t.turns.length} snapshots`;
+ let prev=[];el.innerHTML='<table><tr><th>turn</th><th>top candidate</th><th>new opp moves</th><th>top belief</th></tr>'+t.snapshots.map(s=>{
+ const moves=s.active.opponent.revealedMoves||[];const fresh=moves.filter(m=>!prev.includes(m));prev=moves;
+ const top=(s.candidates||[])[0];const belief=(s.opponentBelief.actions||[])[0];
+ return`<tr><td>${s.turn}</td><td>${top?top.action.kind+':'+top.action.id:''}</td><td>${fresh.join(', ')}</td><td>${belief?belief.label+' '+Math.round(belief.probability*100)+'%':''}</td></tr>`;}).join('')+'</table>';}
+ catch(e){document.getElementById('status').textContent='Analysis engine unavailable.';}
+}
+if(q.get('view')==='timeline'){document.getElementById('tlLink').href=`?battleId=${encodeURIComponent(battleId)}&view=timeline`;timeline();}
+else{document.getElementById('tlLink').href=`?battleId=${encodeURIComponent(battleId)}&view=timeline`;document.getElementById('liveLink').href=`?battleId=${encodeURIComponent(battleId)}`;setInterval(tick,2000);tick();}
 </script>
 </body>
 </html>
