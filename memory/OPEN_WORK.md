@@ -87,6 +87,7 @@ Priority order is intentionally coarse. Pick one vertical slice at a time.
 - [x] Add PostgreSQL repository for battles, decisions, and dataset manifests.
 - [x] Run frozen benchmark harness against baseline and candidate policies.
 - [x] Verify Docker collector image end to end.
+- [x] Serve live analysis snapshots over HTTP and wire Firefox MV3 extension bridge (page WebSocket → /ingest → NDJSON → panel). Perspective detection on the live side remains default-p1 pending live verification.
 
 ## Known implementation ceilings
 
